@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NEXUS — Mails</title>
+  <title>MAILS — ATMOS (prototype)</title>
   <meta name="color-scheme" content="dark light">
 
   <!-- Polices ATMOS -->
@@ -82,31 +82,18 @@
     .snippet{color:var(--muted); margin-top:6px}
     .small{font-size:12px; color:var(--muted)}
 
-    .identity{margin:12px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center}
-    .pill{border:1px solid var(--grid); border-radius:9999px; padding:6px 10px; background:rgba(8,12,28,.55)}
-
     @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="topbar" role="toolbar" aria-label="Navigation mails">
-      <h1>NEXUS — <span class="appname">Mails</span></h1>
-      <!-- Connexion aux boîtes mail (tokens fournisseurs) -->
+      <h1>MAILS — <span class="appname">ATMOS</span></h1>
       <button class="btn" id="googleBtn" title="Se connecter à Google (Gmail)">Google</button>
       <button class="btn" id="msBtn" title="Se connecter à Microsoft (Outlook/Office 365)">Microsoft</button>
       <button class="btn" id="logoutBtn" title="Se déconnecter" disabled>Déconnexion</button>
       <div class="spacer"></div>
       <span id="status" class="status">Choisissez un fournisseur et connectez-vous.</span>
-    </div>
-
-    <!-- Identité ATMOS (Supabase) -->
-    <div class="identity" role="group" aria-label="Identité ATMOS">
-      <span class="pill small">Identité ATMOS :</span>
-      <button class="btn" id="sbLoginGoogle">Google</button>
-      <button class="btn" id="sbLoginMs">Microsoft</button>
-      <button class="btn" id="sbLogout" style="display:none">Déconnexion</button>
-      <span id="who" class="small" style="margin-left:8px">Non connecté</span>
     </div>
 
     <div id="emails" class="list" aria-live="polite"></div>
@@ -117,26 +104,19 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- MSAL (Microsoft Identity) -->
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" integrity="sha384-7xwG7q8oC1RjZ0bQwR7hZ0U3dC2b2V5iBqgYtYlVXv1WmR8xQd1bR8u9v8G9qJjL" crossorigin="anonymous"></script>
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // ===== CONFIG FOURNISSEURS MAIL =====
-    const GOOGLE_CLIENT_ID = "REMPLACEZ-MOI.apps.googleusercontent.com"; // Google Cloud Console > OAuth client ID (Web)
-    const AZURE_CLIENT_ID  = "00000000-0000-0000-0000-000000000000";    // Entra ID > App registration > Application (client) ID
-    // Ajoutez l'URL exacte de cette page comme Redirect URI autorisée dans chaque console.
+    // ===== CONFIG À RENSEIGNER =====
+    const GOOGLE_CLIENT_ID = "REMPLACEZ-MOI.apps.googleusercontent.com"; // Google Cloud Console > OAuth client ID (type: Web)
+    const AZURE_CLIENT_ID  = "00000000-0000-0000-0000-000000000000";    // Microsoft Entra ID (Azure AD) > App registration > Application (client) ID
+    // IMPORTANT : ajoutez l'URL exacte de cette page comme redirect URI/autorisée dans chaque console (Google & Microsoft).
 
-    // ===== CONFIG SUPABASE (identité ATMOS) =====
-    const SUPABASE_URL = "https://jlfvbggzdkkwrmpsamvz.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
-    });
-
-    // ========== UI commun ==========
+    // ===== ÉTAT/UTILS COMMUNS =====
     const emailsEl = document.getElementById('emails');
     const statusEl = document.getElementById('status');
     const logoutBtn = document.getElementById('logoutBtn');
+    let currentProvider = null; // 'google' | 'microsoft'
+
     function setStatus(msg){ statusEl.textContent = msg; }
     function clearList(){ emailsEl.innerHTML = ''; }
     function addCard({from, subject, snippet, when, link}){
@@ -155,7 +135,9 @@
 
     // ================= GOOGLE (GMAIL) =================
     let googleTokenClient = null; let gapiReady = false;
+
     window.addEventListener('load', () => {
+      // Charger gapi client
       if (window.gapi) {
         gapi.load('client', async () => {
           await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest'] });
@@ -165,8 +147,8 @@
     });
 
     async function loginGoogle(){
-      if(!gapiReady){ setStatus('Initialisation Google…'); await new Promise(r=>setTimeout(r,300)); }
-      clearList(); setStatus('Connexion à Google…');
+      if(!gapiReady){ setStatus('Initialisation Google…'); await new Promise(r=>setTimeout(r,400)); }
+      currentProvider = 'google'; clearList(); setStatus('Connexion à Google…');
       if(!googleTokenClient){
         googleTokenClient = google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CLIENT_ID,
@@ -177,7 +159,9 @@
               setStatus('Lecture des messages Gmail…');
               await listGmail();
               logoutBtn.disabled = false;
-            } else { setStatus('Échec de l’authentification Google.'); }
+            } else {
+              setStatus('Échec de l’authentification Google.');
+            }
           }
         });
       }
@@ -204,9 +188,10 @@
         }
         setStatus(`Affichage de ${msgs.length} messages (Gmail).`);
       }catch(e){
-        console.error(e); setStatus('Erreur Gmail (vérifiez Client ID, scopes et URL de redirection).');
+        console.error(e); setStatus('Erreur lors de la lecture Gmail (vérifiez le Client ID, les scopes et l’URL de redirection).');
       }
     }
+
     function logoutGoogle(){
       try{ const tok = gapi.client.getToken(); if(tok && tok.access_token){ google.accounts.oauth2.revoke(tok.access_token, ()=>{}); } }catch{}
       gapi.client.setToken('');
@@ -219,7 +204,7 @@
     });
 
     async function loginMicrosoft(){
-      clearList(); setStatus('Connexion à Microsoft…');
+      currentProvider = 'microsoft'; clearList(); setStatus('Connexion à Microsoft…');
       try{
         const loginResp = await msalInstance.loginPopup({ scopes:['Mail.Read'] });
         const acc = loginResp.account; msalInstance.setActiveAccount(acc);
@@ -251,73 +236,17 @@
           });
         }
         setStatus(`Affichage de ${items.length} messages (Outlook).`);
-      }catch(e){ console.error(e); setStatus('Erreur Outlook (vérifiez Client ID, scopes et Redirect URI).'); }
+      }catch(e){ console.error(e); setStatus('Erreur lors de la lecture Outlook (vérifiez le Client ID, les scopes et l’URL de redirection).'); }
     }
-
-    // ================= Identité ATMOS (Supabase) =================
-    const sbLoginGoogle = document.getElementById('sbLoginGoogle');
-    const sbLoginMs     = document.getElementById('sbLoginMs');
-    const sbLogout      = document.getElementById('sbLogout');
-    const whoSpan       = document.getElementById('who');
-    const SITE_URL      = location.origin + location.pathname;
-
-    function showIdentity(session){
-      const user = session?.user || null;
-      if(user){
-        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Connecté';
-        whoSpan.textContent = `Connecté : ${name}`;
-        sbLoginGoogle.style.display = 'none';
-        sbLoginMs.style.display     = 'none';
-        sbLogout.style.display      = '';
-      }else{
-        whoSpan.textContent = 'Non connecté';
-        sbLoginGoogle.style.display = '';
-        sbLoginMs.style.display     = '';
-        sbLogout.style.display      = 'none';
-      }
-    }
-    async function sbSignIn(provider, scopes){
-      try{
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: { redirectTo: SITE_URL, scopes }
-        });
-        if(error) alert('Connexion ATMOS impossible : ' + error.message);
-      }catch(err){ alert('Erreur ATMOS : ' + (err?.message || err)); }
-    }
-
-    sbLoginGoogle.onclick = () => sbSignIn('google', 'email profile openid');
-    sbLoginMs.onclick     = () => sbSignIn('azure',  'email openid profile');
-    sbLogout.onclick      = async () => { await supabase.auth.signOut(); showIdentity(null); };
-
-    // Nettoie les params OAuth si présents (?code=...&state=...)
-    (function cleanOAuthParams(){
-      const q = new URLSearchParams(location.search);
-      if(q.has('code') || q.has('state') || q.has('error_description')){
-        history.replaceState({}, document.title, SITE_URL);
-      }
-    })();
-
-    supabase.auth.getSession().then(({ data }) => showIdentity(data.session));
-    supabase.auth.onAuthStateChange((_e, session) => showIdentity(session));
 
     // ================= Wiring UI =================
     document.getElementById('googleBtn').addEventListener('click', loginGoogle);
     document.getElementById('msBtn').addEventListener('click', loginMicrosoft);
     logoutBtn.addEventListener('click', ()=>{
-      logoutBtn.disabled = true;
-      try{
-        logoutGoogle();
-        msalInstance.logoutPopup({ postLogoutRedirectUri: window.location.href });
-      }catch{}
-      clearList(); setStatus('Déconnecté.');
+      if(currentProvider==='google') logoutGoogle();
+      if(currentProvider==='microsoft') msalInstance.logoutPopup({ postLogoutRedirectUri: window.location.href });
+      currentProvider=null; clearList(); setStatus('Déconnecté.'); logoutBtn.disabled = true;
     });
-
-    // Avertit si la page est servie en file:// (OAuth exige https)
-    if(location.protocol === 'file:'){
-      setStatus('Ouvre cette page via HTTPS (GitHub Pages, Netlify…) pour que la connexion fonctionne.');
-      whoSpan.textContent = 'Identité ATMOS indisponible en file://';
-    }
   </script>
 </body>
 </html>
