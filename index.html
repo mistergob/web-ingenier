@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MAILS — ATMOS (prototype)</title>
+  <meta name="color-scheme" content="dark light">
+
+  <!-- Polices ATMOS -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary:#00eaff; --accent:#8a2be2; --text:#e6f7ff; --muted:#9fb3c8;
+      --space-img:url("https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=1920&auto=format&fit=crop");
+      --bg-a:#05060d; --bg-b:#0b1430; --bg-c:#00182a;
+      --glow: drop-shadow(0 0 8px rgba(0,234,255,.55)) drop-shadow(0 0 18px rgba(138,43,226,.35));
+      --ring: 0 0 0 3px rgba(0,234,255,.35), 0 0 24px rgba(0,234,255,.25);
+      --grid:rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--text);
+      font-family:Outfit, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1200px 800px at 75% 10%, rgba(138,43,226,.18), transparent 60%),
+        radial-gradient(900px 700px at 15% 85%, rgba(0,234,255,.12), transparent 55%),
+        radial-gradient(700px 500px at 80% 80%, rgba(0,40,80,.35), transparent 60%),
+        linear-gradient(120deg, var(--bg-a), var(--bg-b) 40%, var(--bg-c));
+      overflow-x:hidden;
+    }
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; mix-blend-mode:screen; opacity:.15; z-index:-1;
+      background:
+        var(--space-img) center/cover no-repeat,
+        radial-gradient(1px 1px at 10% 20%, #fff 40%, transparent 41%),
+        radial-gradient(1px 1px at 30% 80%, #fff 40%, transparent 41%),
+        radial-gradient(1px 1px at 70% 30%, #fff 40%, transparent 41%),
+        radial-gradient(1px 1px at 90% 60%, #fff 40%, transparent 41%);
+      animation: twinkle 14s linear infinite;
+    }
+    @keyframes twinkle{0%,100%{opacity:.12}50%{opacity:.22}}
+    body::after{content:""; position:fixed; inset:-10%; pointer-events:none; z-index:-1; filter:blur(24px);
+      background: radial-gradient(600px 320px at 50% 25%, rgba(0,234,255,.18), transparent 60%),
+                  radial-gradient(900px 420px at 50% 70%, rgba(138,43,226,.18), transparent 65%);
+      animation: float 18s ease-in-out infinite alternate;
+    }
+    @keyframes float{from{transform:translateY(-1.5%)}to{transform:translateY(1.5%)}}
+
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+    .topbar{position:sticky; top:16px; z-index:10; display:flex; align-items:center; gap:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--grid); border-radius:16px; padding:10px 12px; backdrop-filter: blur(8px);
+      box-shadow:0 12px 40px rgba(0,0,0,.35);
+    }
+    .topbar h1{margin:0 8px 0 4px; font:700 16px/1 Orbitron, sans-serif; letter-spacing:.06em}
+    .spacer{flex:1}
+
+    .btn{appearance:none; cursor:pointer; border:1px solid transparent; border-radius:12px; padding:10px 12px; color:var(--text);
+      background: linear-gradient(#0c1327,#0b1120) padding-box,
+                 conic-gradient(from 180deg, rgba(0,234,255,.8), rgba(138,43,226,.8), rgba(0,234,255,.8)) border-box;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.45);
+      transition: transform .2s ease, filter .2s ease, box-shadow .2s ease; font-weight:600; letter-spacing:.02em;
+    }
+    .btn:hover{ transform: translateY(-2px); filter: var(--glow); }
+    .btn:focus-visible{ outline:none; box-shadow: var(--ring); }
+    .btn[disabled]{opacity:.5; cursor:not-allowed}
+
+    .status{color:var(--muted); font-size:12px}
+
+    .card{
+      border:1px solid var(--grid); border-radius:14px; padding:12px; background: rgba(8,12,28,.55);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); transition: transform .15s ease, filter .15s ease;
+    }
+    .card:hover{ transform: translateY(-2px); filter: var(--glow); }
+
+    .list{display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:10px; margin-top:12px}
+    .row{display:flex; align-items:center; gap:10px}
+    .from{color:#fff; font-weight:700; margin-right:auto}
+    .subject{font-weight:600}
+    .snippet{color:var(--muted); margin-top:6px}
+    .small{font-size:12px; color:var(--muted)}
+
+    @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar" role="toolbar" aria-label="Navigation mails">
+      <h1>MAILS — <span class="appname">ATMOS</span></h1>
+      <button class="btn" id="googleBtn" title="Se connecter à Google (Gmail)">Google</button>
+      <button class="btn" id="msBtn" title="Se connecter à Microsoft (Outlook/Office 365)">Microsoft</button>
+      <button class="btn" id="logoutBtn" title="Se déconnecter" disabled>Déconnexion</button>
+      <div class="spacer"></div>
+      <span id="status" class="status">Choisissez un fournisseur et connectez-vous.</span>
+    </div>
+
+    <div id="emails" class="list" aria-live="polite"></div>
+  </div>
+
+  <!-- Google APIs: gapi + Google Identity Services -->
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- MSAL (Microsoft Identity) -->
+  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" integrity="sha384-7xwG7q8oC1RjZ0bQwR7hZ0U3dC2b2V5iBqgYtYlVXv1WmR8xQd1bR8u9v8G9qJjL" crossorigin="anonymous"></script>
+
+  <script>
+    // ===== CONFIG À RENSEIGNER =====
+    const GOOGLE_CLIENT_ID = "REMPLACEZ-MOI.apps.googleusercontent.com"; // Google Cloud Console > OAuth client ID (type: Web)
+    const AZURE_CLIENT_ID  = "00000000-0000-0000-0000-000000000000";    // Microsoft Entra ID (Azure AD) > App registration > Application (client) ID
+    // IMPORTANT : ajoutez l'URL exacte de cette page comme redirect URI/autorisée dans chaque console (Google & Microsoft).
+
+    // ===== ÉTAT/UTILS COMMUNS =====
+    const emailsEl = document.getElementById('emails');
+    const statusEl = document.getElementById('status');
+    const logoutBtn = document.getElementById('logoutBtn');
+    let currentProvider = null; // 'google' | 'microsoft'
+
+    function setStatus(msg){ statusEl.textContent = msg; }
+    function clearList(){ emailsEl.innerHTML = ''; }
+    function addCard({from, subject, snippet, when, link}){
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <div class="row"><div class="from">${escapeHtml(from||'—')}</div><div class="small">${when||''}</div></div>
+        <div class="subject">${escapeHtml(subject||'(Sans objet)')}</div>
+        ${snippet?`<div class="snippet">${escapeHtml(snippet)}</div>`:''}
+        ${link?`<div style="margin-top:8px"><a class="small" href="${link}" target="_blank" rel="noopener noreferrer">Ouvrir la boîte mail ↗</a></div>`:''}
+      `;
+      emailsEl.appendChild(div);
+    }
+    function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+    function fmtDate(d){ try{ return new Date(d).toLocaleString('fr-FR'); }catch{ return '' } }
+
+    // ================= GOOGLE (GMAIL) =================
+    let googleTokenClient = null; let gapiReady = false;
+
+    window.addEventListener('load', () => {
+      // Charger gapi client
+      if (window.gapi) {
+        gapi.load('client', async () => {
+          await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest'] });
+          gapiReady = true;
+        });
+      }
+    });
+
+    async function loginGoogle(){
+      if(!gapiReady){ setStatus('Initialisation Google…'); await new Promise(r=>setTimeout(r,400)); }
+      currentProvider = 'google'; clearList(); setStatus('Connexion à Google…');
+      if(!googleTokenClient){
+        googleTokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: 'https://www.googleapis.com/auth/gmail.readonly',
+          callback: async (resp) => {
+            if(resp && resp.access_token){
+              gapi.client.setToken({ access_token: resp.access_token });
+              setStatus('Lecture des messages Gmail…');
+              await listGmail();
+              logoutBtn.disabled = false;
+            } else {
+              setStatus('Échec de l’authentification Google.');
+            }
+          }
+        });
+      }
+      googleTokenClient.requestAccessToken({ prompt:'consent' });
+    }
+
+    async function listGmail(){
+      try{
+        const res = await gapi.client.gmail.users.messages.list({ userId:'me', labelIds:['INBOX'], maxResults:20 });
+        const msgs = res.result.messages || [];
+        clearList();
+        if(msgs.length===0){ setStatus('Aucun message dans la boîte de réception (Gmail).'); return; }
+        for(const m of msgs){
+          const detail = await gapi.client.gmail.users.messages.get({ userId:'me', id:m.id, format:'metadata', metadataHeaders:['Subject','From','Date'] });
+          const headers = (detail.result.payload.headers||[]);
+          const h = Object.fromEntries(headers.map(x=>[x.name.toLowerCase(), x.value]));
+          addCard({
+            from: h['from'],
+            subject: h['subject'],
+            when: fmtDate(h['date']),
+            snippet: detail.result.snippet,
+            link: 'https://mail.google.com/mail/u/0/#inbox'
+          });
+        }
+        setStatus(`Affichage de ${msgs.length} messages (Gmail).`);
+      }catch(e){
+        console.error(e); setStatus('Erreur lors de la lecture Gmail (vérifiez le Client ID, les scopes et l’URL de redirection).');
+      }
+    }
+
+    function logoutGoogle(){
+      try{ const tok = gapi.client.getToken(); if(tok && tok.access_token){ google.accounts.oauth2.revoke(tok.access_token, ()=>{}); } }catch{}
+      gapi.client.setToken('');
+    }
+
+    // ================= MICROSOFT (OUTLOOK via Graph) =================
+    const msalInstance = new msal.PublicClientApplication({
+      auth: { clientId: AZURE_CLIENT_ID, authority: 'https://login.microsoftonline.com/common', redirectUri: window.location.origin + window.location.pathname },
+      cache: { cacheLocation:'sessionStorage' }
+    });
+
+    async function loginMicrosoft(){
+      currentProvider = 'microsoft'; clearList(); setStatus('Connexion à Microsoft…');
+      try{
+        const loginResp = await msalInstance.loginPopup({ scopes:['Mail.Read'] });
+        const acc = loginResp.account; msalInstance.setActiveAccount(acc);
+        const tokenResp = await msalInstance.acquireTokenSilent({ scopes:['Mail.Read'], account:acc }).catch(()=> msalInstance.acquireTokenPopup({ scopes:['Mail.Read'] }));
+        const token = tokenResp.accessToken;
+        setStatus('Lecture des messages Outlook…');
+        await listOutlook(token);
+        logoutBtn.disabled = false;
+      }catch(e){ console.error(e); setStatus('Échec de l’authentification Microsoft.'); }
+    }
+
+    async function listOutlook(token){
+      try{
+        const r = await fetch('https://graph.microsoft.com/v1.0/me/messages?$select=subject,from,receivedDateTime,bodyPreview&$top=20', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if(!r.ok) throw new Error('Graph error '+r.status);
+        const data = await r.json();
+        const items = data.value||[];
+        clearList();
+        if(items.length===0){ setStatus('Aucun message dans la boîte de réception (Outlook).'); return; }
+        for(const m of items){
+          addCard({
+            from: (m.from && (m.from.emailAddress.name||m.from.emailAddress.address)) || '—',
+            subject: m.subject || '(Sans objet)',
+            when: fmtDate(m.receivedDateTime),
+            snippet: m.bodyPreview || '',
+            link: 'https://outlook.office.com/mail/inbox'
+          });
+        }
+        setStatus(`Affichage de ${items.length} messages (Outlook).`);
+      }catch(e){ console.error(e); setStatus('Erreur lors de la lecture Outlook (vérifiez le Client ID, les scopes et l’URL de redirection).'); }
+    }
+
+    // ================= Wiring UI =================
+    document.getElementById('googleBtn').addEventListener('click', loginGoogle);
+    document.getElementById('msBtn').addEventListener('click', loginMicrosoft);
+    logoutBtn.addEventListener('click', ()=>{
+      if(currentProvider==='google') logoutGoogle();
+      if(currentProvider==='microsoft') msalInstance.logoutPopup({ postLogoutRedirectUri: window.location.href });
+      currentProvider=null; clearList(); setStatus('Déconnecté.'); logoutBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>
