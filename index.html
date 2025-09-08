@@ -10,13 +10,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
-    :root{ --primary:#00eaff; --accent:#8a2be2; --text:#e6f7ff; --muted:#9fb3c8;
+    :root{
+      --primary:#00eaff; --accent:#8a2be2; --text:#e6f7ff; --muted:#9fb3c8;
       --space-img:url("https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=1920&auto=format&fit=crop");
-      --bg-a:#05060d; --bg-b:#0b1430; --bg-c:#00182a; --glow: drop-shadow(0 0 8px rgba(0,234,255,.55)) drop-shadow(0 0 18px rgba(138,43,226,.35));
-      --ring: 0 0 0 3px rgba(0,234,255,.35), 0 0 24px rgba(0,234,255,.25); --grid:rgba(255,255,255,.12);
+      --bg-a:#05060d; --bg-b:#0b1430; --bg-c:#00182a;
+      --glow: drop-shadow(0 0 8px rgba(0,234,255,.55)) drop-shadow(0 0 18px rgba(138,43,226,.35));
+      --ring: 0 0 0 3px rgba(0,234,255,.35), 0 0 24px rgba(0,234,255,.25);
+      --grid:rgba(255,255,255,.12);
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{ margin:0;color:var(--text);
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--text);
       font-family:Outfit, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       background:
         radial-gradient(1200px 800px at 75% 10%, rgba(138,43,226,.18), transparent 60%),
@@ -25,8 +30,10 @@
         linear-gradient(120deg, var(--bg-a), var(--bg-b) 40%, var(--bg-c));
       overflow-x:hidden;
     }
-    body::before{content:""; position:fixed; inset:0; pointer-events:none; mix-blend-mode:screen; opacity:.15; z-index:-1;
-      background: var(--space-img) center/cover no-repeat,
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; mix-blend-mode:screen; opacity:.15; z-index:-1;
+      background:
+        var(--space-img) center/cover no-repeat,
         radial-gradient(1px 1px at 10% 20%, #fff 40%, transparent 41%),
         radial-gradient(1px 1px at 30% 80%, #fff 40%, transparent 41%),
         radial-gradient(1px 1px at 70% 30%, #fff 40%, transparent 41%),
@@ -34,9 +41,11 @@
       animation: twinkle 14s linear infinite;
     }
     @keyframes twinkle{0%,100%{opacity:.12}50%{opacity:.22}}
-    body::after{content:""; position:fixed; inset:-10%; pointer-events:none; z-index:-1; filter:blur(24px);
-      background: radial-gradient(600px 320px at 50% 25%, rgba(0,234,255,.18), transparent 60%),
-                  radial-gradient(900px 420px at 50% 70%, rgba(138,43,226,.18), transparent 65%);
+    body::after{
+      content:""; position:fixed; inset:-10%; pointer-events:none; z-index:-1; filter:blur(24px);
+      background:
+        radial-gradient(600px 320px at 50% 25%, rgba(0,234,255,.18), transparent 60%),
+        radial-gradient(900px 420px at 50% 70%, rgba(138,43,226,.18), transparent 65%);
       animation: float 18s ease-in-out infinite alternate;
     }
     @keyframes float{from{transform:translateY(-1.5%)}to{transform:translateY(1.5%)}}
@@ -50,9 +59,11 @@
     .topbar h1{margin:0 8px 0 4px; font:700 16px/1 Orbitron, sans-serif; letter-spacing:.06em}
     .spacer{flex:1}
 
-    .btn{appearance:none; cursor:pointer; border:1px solid transparent; border-radius:12px; padding:10px 12px; color:var(--text);
-      background: linear-gradient(#0c1327,#0b1120) padding-box,
-                 conic-gradient(from 180deg, rgba(0,234,255,.8), rgba(138,43,226,.8), rgba(0,234,255,.8)) border-box;
+    .btn{
+      appearance:none; cursor:pointer; border:1px solid transparent; border-radius:12px; padding:10px 12px; color:var(--text);
+      background:
+        linear-gradient(#0c1327,#0b1120) padding-box,
+        conic-gradient(from 180deg, rgba(0,234,255,.8), rgba(138,43,226,.8), rgba(0,234,255,.8)) border-box;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.45);
       transition: transform .2s ease, filter .2s ease, box-shadow .2s ease; font-weight:600; letter-spacing:.02em;
     }
@@ -62,8 +73,10 @@
 
     .status{color:var(--muted); font-size:12px}
 
-    .card{ border:1px solid var(--grid); border-radius:14px; padding:12px; background: rgba(8,12,28,.55);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); transition: transform .15s ease, filter .15s ease; }
+    .card{
+      border:1px solid var(--grid); border-radius:14px; padding:12px; background: rgba(8,12,28,.55);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); transition: transform .15s ease, filter .15s ease;
+    }
     .card:hover{ transform: translateY(-2px); filter: var(--glow); }
 
     .list{display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:10px; margin-top:12px}
@@ -73,20 +86,60 @@
     .snippet{color:var(--muted); margin-top:6px}
     .small{font-size:12px; color:var(--muted)}
 
-    /* === AUTH LOCK === */
-    .auth-block{ position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-      background:rgba(3,6,16,.65); backdrop-filter:blur(3px); z-index:9999; }
-    .auth-card{ width:min(520px,calc(100vw - 32px)); padding:16px; border-radius:16px;
+    /* === AUTH LOCK (bloque l’UI tant que non connecté à ATMOS) === */
+    .auth-block{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(3,6,16,.65); backdrop-filter:blur(3px); z-index:9999;
+    }
+    .auth-card{
+      width:min(520px,calc(100vw - 32px)); padding:16px; border-radius:16px;
       border:1px solid rgba(255,255,255,.06);
       background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
       box-shadow:0 20px 40px rgba(0,0,0,.45); color:var(--text);
     }
     .auth-card h3{ margin:0 0 8px; font-family:Orbitron,sans-serif; letter-spacing:.06em }
+
     body.auth-locked .auth-block{ display:flex; }
     body.auth-locked .container{ pointer-events:none; filter:grayscale(1) opacity(.35) }
 
     @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
   </style>
+
+  <!-- ✅ Déclare l'init GAPI AVANT le chargement du script -->
+  <script>
+    window.__gapiReady = false;
+    window.__gapiError = null;
+
+    // Appelée automatiquement par api.js (onload=onGapiLoad)
+    async function onGapiLoad(){
+      if (!window.gapi) { window.__gapiError = new Error('gapi non chargé'); return; }
+      try{
+        await new Promise(res => gapi.load('client', res));
+        await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest'] });
+        window.__gapiReady = true;
+        console.log('[NEXUS] GAPI prêt');
+      }catch(err){
+        window.__gapiError = err;
+        console.error('[NEXUS] Erreur init GAPI:', err);
+      }
+    }
+
+    function waitForGapiReady(timeoutMs=6000){
+      return new Promise(resolve=>{
+        if(window.__gapiReady) return resolve();
+        const t0 = Date.now();
+        const id = setInterval(()=>{
+          if(window.__gapiReady || window.__gapiError || Date.now()-t0>timeoutMs){
+            clearInterval(id); resolve();
+          }
+        }, 100);
+      });
+    }
+  </script>
+  <!-- Google APIs: gapi + Google Identity Services -->
+  <script src="https://apis.google.com/js/api.js?onload=onGapiLoad" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </head>
 <body class="auth-locked">
   <div class="container">
@@ -113,10 +166,6 @@
     </div>
   </div>
 
-  <!-- Google APIs: gapi + Google Identity Services -->
-  <!-- ✅ Fiabilisation: on déclenche notre init quand api.js a fini de charger -->
-  <script src="https://apis.google.com/js/api.js?onload=onGapiLoad" async defer></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- MSAL (Microsoft Identity) -->
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" integrity="sha384-7xwG7q8oC1RjZ0bQwR7hZ0U3dC2b2V5iBqgYtYlVXv1WmR8xQd1bR8u9v8G9qJjL" crossorigin="anonymous"></script>
 
@@ -131,13 +180,13 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const googleBtn = document.getElementById('googleBtn');
     const msBtn = document.getElementById('msBtn');
-    let currentProvider = null; // 'google' | 'microsoft'
+    let currentProvider = null;
     function setStatus(msg){ statusEl.textContent = msg; }
     function clearList(){ emailsEl.innerHTML = ''; }
     function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;","&gt;":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
     function fmtDate(d){ try{ return new Date(d).toLocaleString('fr-FR'); }catch{ return '' } }
 
-    // ====== helpers MIME/base64url + reply ======
+    // ===== Gmail helpers (send/reply) =====
     function extractEmailAddress(h){
       const v = String(h||'').trim(); const m = v.match(/<([^>]+)>/); return m ? m[1] : v;
     }
@@ -163,41 +212,39 @@
     }
 
     // ================= GOOGLE (GMAIL) =================
-    let googleTokenClient = null; let gapiReady = false; let gapiInitError = null;
+    let googleTokenClient = null;
 
-    // Appelée automatiquement par api.js (paramètre onload=onGapiLoad)
-    window.onGapiLoad = async function(){
-      try{
-        await new Promise(res => gapi.load('client', res));
-        await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest'] });
-        gapiReady = true;
-      }catch(err){
-        gapiInitError = err;
-        console.error('GAPI init error:', err);
-      }
-    };
-
-    function waitForGapiReady(timeoutMs=4000){
-      return new Promise(resolve=>{
-        if(gapiReady) return resolve();
-        const t0 = Date.now();
-        const id = setInterval(()=>{
-          if(gapiReady || gapiInitError || Date.now()-t0>timeoutMs){
-            clearInterval(id); resolve();
-          }
-        }, 100);
+    async function ensureGsiLoaded(){
+      if (window.google && google.accounts) return;
+      await new Promise((resolve, reject)=>{
+        const s = document.createElement('script');
+        s.src = "https://accounts.google.com/gsi/client";
+        s.async = true; s.defer = true;
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
       });
     }
 
     async function loginGoogle(){
-      // Si le verrou ATMOS est actif, on affiche un message explicite
+      // Verrou ATMOS ?
       if(document.body.classList.contains('auth-locked')){
         setStatus('Connexion à ATMOS requise avant Google.');
         return;
       }
 
-      await waitForGapiReady(); // fiabilise le chargement gapi
-      currentProvider = 'google'; clearList(); setStatus('Connexion à Google…');
+      setStatus('Initialisation Google…');
+      await ensureGsiLoaded();
+      await waitForGapiReady();
+
+      if (!window.__gapiReady){
+        console.error('[NEXUS] GAPI pas prêt', window.__gapiError);
+        setStatus('Erreur d’initialisation Google API (regarde la console).');
+        return;
+      }
+
+      currentProvider = 'google';
+      clearList();
+      setStatus('Connexion à Google…');
 
       if(!googleTokenClient){
         googleTokenClient = google.accounts.oauth2.initTokenClient({
@@ -276,7 +323,7 @@
                 alert('Réponse envoyée ✅');
               }catch(e){
                 console.error(e);
-                alert('Échec de l’envoi (vérifie que le scope gmail.send est autorisé).');
+                alert('Échec de l’envoi (scope gmail.send, API Gmail activée, ou origin non autorisée).');
               }
             }
           });
@@ -284,7 +331,7 @@
         setStatus(`Affichage de ${msgs.length} messages (Gmail).`);
       }catch(e){
         console.error(e);
-        setStatus('Erreur Gmail (vérifie Client ID, scopes, Gmail API activée, et Origin autorisée).');
+        setStatus('Erreur Gmail (Client ID / scopes / Gmail API / Origin).');
       }
     }
 
@@ -388,15 +435,19 @@
 
     supabase.auth.onAuthStateChange((_evt, session) => setAuthLocked(!session));
 
-    // Coupe toutes les interactions quand verrouillé
+    // Coupe *toutes* les interactions quand verrouillé
     ['pointerdown','wheel','keydown','contextmenu'].forEach(ev=>{
       window.addEventListener(ev, (e)=>{
-        if (document.body.classList.contains('auth-locked')) { e.preventDefault(); e.stopImmediatePropagation(); }
+        if (document.body.classList.contains('auth-locked')) {
+          e.preventDefault(); e.stopImmediatePropagation();
+        }
       }, { capture:true, passive:false });
     });
 
     checkAuth();
-    if (location.protocol === "file:") { console.warn("⚠️ Ouvre via HTTPS (ou un serveur local) pour que l’auth fonctionne."); }
+    if (location.protocol === "file:") {
+      console.warn("⚠️ Ouvre via HTTPS (ou un serveur local) pour que l’auth fonctionne.");
+    }
   </script>
 </body>
 </html>
