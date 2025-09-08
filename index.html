@@ -96,9 +96,7 @@
     .auth-card h3{ margin:0 0 8px; font-family:Orbitron,sans-serif; letter-spacing:.06em }
 
     body.auth-locked .auth-block{ display:flex; }
-    body.auth-locked .container{
-      pointer-events:none; filter:grayscale(1) opacity(.35)
-    }
+    body.auth-locked .container{ pointer-events:none; filter:grayscale(1) opacity(.35) }
 
     @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
   </style>
@@ -135,10 +133,9 @@
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" integrity="sha384-7xwG7q8oC1RjZ0bQwR7hZ0U3dC2b2V5iBqgYtYlVXv1WmR8xQd1bR8u9v8G9qJjL" crossorigin="anonymous"></script>
 
   <script>
-    // ===== CONFIG À RENSEIGNER =====
-    const GOOGLE_CLIENT_ID = "514694919456-u0csh5so13bsb8u0cl5a7fl5lgmla4c4.apps.googleusercontent.com"; // Google Cloud Console > OAuth client ID (type: Web)
-    const AZURE_CLIENT_ID  = "00000000-0000-0000-0000-000000000000";    // Microsoft Entra ID (Azure AD) > App registration > Application (client) ID
-    // IMPORTANT : ajoutez l'URL exacte de cette page comme redirect URI/autorisée dans chaque console (Google & Microsoft).
+    // ===== CONFIG =====
+    const GOOGLE_CLIENT_ID = "514694919456-u0csh5so13bsb8u0cl5a7fl5lgmla4c4.apps.googleusercontent.com";
+    const AZURE_CLIENT_ID  = "00000000-0000-0000-0000-000000000000"; // remplace si tu utilises Outlook
 
     // ===== ÉTAT/UTILS COMMUNS =====
     const emailsEl = document.getElementById('emails');
@@ -147,22 +144,41 @@
     const googleBtn = document.getElementById('googleBtn');
     const msBtn = document.getElementById('msBtn');
     let currentProvider = null; // 'google' | 'microsoft'
-
     function setStatus(msg){ statusEl.textContent = msg; }
     function clearList(){ emailsEl.innerHTML = ''; }
-    function addCard({from, subject, snippet, when, link}){
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.innerHTML = `
-        <div class="row"><div class="from">${escapeHtml(from||'—')}</div><div class="small">${when||''}</div></div>
-        <div class="subject">${escapeHtml(subject||'(Sans objet)')}</div>
-        ${snippet?`<div class="snippet">${escapeHtml(snippet)}</div>`:''}
-        ${link?`<div style="margin-top:8px"><a class="small" href="${link}" target="_blank" rel="noopener noreferrer">Ouvrir la boîte mail ↗</a></div>`:''}
-      `;
-      emailsEl.appendChild(div);
-    }
     function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
     function fmtDate(d){ try{ return new Date(d).toLocaleString('fr-FR'); }catch{ return '' } }
+
+    // ====== helpers MIME/base64url + reply ======
+    function extractEmailAddress(h){
+      const v = String(h||'').trim();
+      const m = v.match(/<([^>]+)>/);
+      return m ? m[1] : v;
+    }
+    function toBase64Url(str){
+      const b64 = btoa(unescape(encodeURIComponent(str)));
+      return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    }
+    function buildMime({to, subject, body, inReplyTo, references}){
+      const headers = [
+        `To: ${to}`,
+        `Subject: ${subject}`,
+        inReplyTo ? `In-Reply-To: ${inReplyTo}` : '',
+        references ? `References: ${references}` : '',
+        'Content-Type: text/plain; charset=UTF-8',
+        'MIME-Version: 1.0',
+        '', // ligne vide entre entêtes et corps
+        body||''
+      ].filter(Boolean).join('\r\n');
+      return toBase64Url(headers);
+    }
+    async function gmailSend({to, subject, body, threadId=null, inReplyTo=null, references=null}){
+      const raw = buildMime({to, subject, body, inReplyTo, references});
+      await gapi.client.gmail.users.messages.send({
+        userId:'me',
+        resource: threadId ? { raw, threadId } : { raw }
+      });
+    }
 
     // ================= GOOGLE (GMAIL) =================
     let googleTokenClient = null; let gapiReady = false;
@@ -182,7 +198,8 @@
       if(!googleTokenClient){
         googleTokenClient = google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CLIENT_ID,
-          scope: 'https://www.googleapis.com/auth/gmail.readonly',
+          // lecture + envoi
+          scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
           callback: async (resp) => {
             if(resp && resp.access_token){
               gapi.client.setToken({ access_token: resp.access_token });
@@ -198,32 +215,83 @@
       googleTokenClient.requestAccessToken({ prompt:'consent' });
     }
 
+    // Carte mail avec bouton Répondre
+    function addCard({from, subject, snippet, when, link, onReply}){
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <div class="row"><div class="from">${escapeHtml(from||'—')}</div><div class="small">${when||''}</div></div>
+        <div class="subject">${escapeHtml(subject||'(Sans objet)')}</div>
+        ${snippet?`<div class="snippet">${escapeHtml(snippet)}</div>`:''}
+        <div class="row" style="margin-top:8px">
+          ${link?`<a class="small" href="${link}" target="_blank" rel="noopener noreferrer">Ouvrir la boîte mail ↗</a>`:''}
+          <span class="spacer"></span>
+          <button class="btn" type="button">Répondre</button>
+        </div>
+      `;
+      div.querySelector('button.btn').addEventListener('click', onReply);
+      emailsEl.appendChild(div);
+    }
+
     async function listGmail(){
       try{
         const res = await gapi.client.gmail.users.messages.list({ userId:'me', labelIds:['INBOX'], maxResults:20 });
         const msgs = res.result.messages || [];
         clearList();
         if(msgs.length===0){ setStatus('Aucun message dans la boîte de réception (Gmail).'); return; }
+
         for(const m of msgs){
-          const detail = await gapi.client.gmail.users.messages.get({ userId:'me', id:m.id, format:'metadata', metadataHeaders:['Subject','From','Date'] });
+          const detail = await gapi.client.gmail.users.messages.get({
+            userId:'me',
+            id:m.id,
+            format:'metadata',
+            metadataHeaders:['Subject','From','Date','Message-Id','References','Reply-To']
+          });
           const headers = (detail.result.payload.headers||[]);
           const h = Object.fromEntries(headers.map(x=>[x.name.toLowerCase(), x.value]));
+          const threadId = detail.result.threadId;
+          const messageId = h['message-id'] || '';
+          const references = h['references'] || messageId;
+          const replyToAddr = extractEmailAddress(h['reply-to'] || h['from']);
+
           addCard({
             from: h['from'],
             subject: h['subject'],
             when: fmtDate(h['date']),
             snippet: detail.result.snippet,
-            link: 'https://mail.google.com/mail/u/0/#inbox'
+            link: 'https://mail.google.com/mail/u/0/#inbox',
+            onReply: async ()=>{
+              const replyText = prompt('Votre réponse :');
+              if(!replyText) return;
+              try{
+                await gmailSend({
+                  to: replyToAddr,
+                  subject: 'Re: ' + (h['subject'] || ''),
+                  body: replyText,
+                  threadId,
+                  inReplyTo: messageId,
+                  references
+                });
+                alert('Réponse envoyée ✅');
+              }catch(e){
+                console.error(e);
+                alert('Échec de l’envoi (assurez-vous que le scope gmail.send est bien autorisé).');
+              }
+            }
           });
         }
         setStatus(`Affichage de ${msgs.length} messages (Gmail).`);
       }catch(e){
-        console.error(e); setStatus('Erreur lors de la lecture Gmail (vérifiez le Client ID, les scopes et l’URL de redirection).');
+        console.error(e);
+        setStatus('Erreur lors de la lecture Gmail (vérifiez le Client ID, les scopes et l’URL d’origine autorisée).');
       }
     }
 
     function logoutGoogle(){
-      try{ const tok = gapi.client.getToken(); if(tok && tok.access_token){ google.accounts.oauth2.revoke(tok.access_token, ()=>{}); } }catch{}
+      try{
+        const tok = gapi.client.getToken();
+        if(tok && tok.access_token){ google.accounts.oauth2.revoke(tok.access_token, ()=>{}); }
+      }catch{}
       gapi.client.setToken('');
     }
 
@@ -238,7 +306,8 @@
       try{
         const loginResp = await msalInstance.loginPopup({ scopes:['Mail.Read'] });
         const acc = loginResp.account; msalInstance.setActiveAccount(acc);
-        const tokenResp = await msalInstance.acquireTokenSilent({ scopes:['Mail.Read'], account:acc }).catch(()=> msalInstance.acquireTokenPopup({ scopes:['Mail.Read'] }));
+        const tokenResp = await msalInstance.acquireTokenSilent({ scopes:['Mail.Read'], account:acc })
+          .catch(()=> msalInstance.acquireTokenPopup({ scopes:['Mail.Read'] }));
         const token = tokenResp.accessToken;
         setStatus('Lecture des messages Outlook…');
         await listOutlook(token);
@@ -257,16 +326,18 @@
         clearList();
         if(items.length===0){ setStatus('Aucun message dans la boîte de réception (Outlook).'); return; }
         for(const m of items){
+          const div = document.createElement('div');
           addCard({
             from: (m.from && (m.from.emailAddress.name||m.from.emailAddress.address)) || '—',
             subject: m.subject || '(Sans objet)',
             when: fmtDate(m.receivedDateTime),
             snippet: m.bodyPreview || '',
-            link: 'https://outlook.office.com/mail/inbox'
+            link: 'https://outlook.office.com/mail/inbox',
+            onReply: ()=> alert('Réponse Outlook non implémentée dans ce prototype.')
           });
         }
         setStatus(`Affichage de ${items.length} messages (Outlook).`);
-      }catch(e){ console.error(e); setStatus('Erreur lors de la lecture Outlook (vérifiez le Client ID, les scopes et l’URL de redirection).'); }
+      }catch(e){ console.error(e); setStatus('Erreur lors de la lecture Outlook (vérifiez le Client ID et la Redirect URI).'); }
     }
 
     // ================= Wiring UI =================
@@ -287,7 +358,7 @@
     const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
 
-    // ⚙️ Ajuste le chemin d’ATMOS si besoin
+    // Ajuste le chemin d’ATMOS si besoin (ex: GitHub Pages /atmos/)
     const ATMOS_URL = location.origin + "/atmos/";
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -305,7 +376,6 @@
 
     function setAuthLocked(on){
       document.body.classList.toggle('auth-locked', !!on);
-      // Optionnel : griser les boutons pour clarté
       const disabled = !!on;
       document.getElementById('googleBtn').disabled = disabled;
       document.getElementById('msBtn').disabled = disabled;
@@ -323,10 +393,9 @@
       setAuthLocked(!data?.session);
     }
 
-    // Réagit aux login/logout effectués sur ATMOS (même projet Supabase)
     supabase.auth.onAuthStateChange((_evt, session) => setAuthLocked(!session));
 
-    // Coupe *toutes* les interactions quand c'est verrouillé (capture globale)
+    // coupe toutes les interactions quand verrouillé
     ['pointerdown','wheel','keydown','contextmenu'].forEach(ev=>{
       window.addEventListener(ev, (e)=>{
         if (document.body.classList.contains('auth-locked')) {
