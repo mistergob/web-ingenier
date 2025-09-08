@@ -41,20 +41,14 @@
       animation: twinkle 14s linear infinite;
     }
     @keyframes twinkle{0%,100%{opacity:.12}50%{opacity:.22}}
-    body::after{
-      content:""; position:fixed; inset:-10%; pointer-events:none; z-index:-1; filter:blur(24px);
-      background:
-        radial-gradient(600px 320px at 50% 25%, rgba(0,234,255,.18), transparent 60%),
-        radial-gradient(900px 420px at 50% 70%, rgba(138,43,226,.18), transparent 65%);
+    body::after{content:""; position:fixed; inset:-10%; pointer-events:none; z-index:-1; filter:blur(24px);
+      background: radial-gradient(600px 320px at 50% 25%, rgba(0,234,255,.18), transparent 60%),
+                  radial-gradient(900px 420px at 50% 70%, rgba(138,43,226,.18), transparent 65%);
       animation: float 18s ease-in-out infinite alternate;
     }
-    @keyframes float{from{transform:translateY(-1.5%)}to{transform:translateY(1.5%)}
-
-    }
+    @keyframes float{from{transform:translateY(-1.5%)}to{transform:translateY(1.5%)}}
 
     .container{max-width:1100px;margin:0 auto;padding:16px}
-
-    /* on remonte le z-index pour éviter tout recouvrement imprévu */
     .topbar{position:sticky; top:16px; z-index:1000; display:flex; align-items:center; gap:10px;
       background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
       border:1px solid var(--grid); border-radius:16px; padding:10px 12px; backdrop-filter: blur(8px);
@@ -82,17 +76,18 @@
     .card{
       border:1px solid var(--grid); border-radius:14px; padding:12px; background: rgba(8,12,28,.55);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); transition: transform .15s ease, filter .15s ease;
+      cursor:pointer;
     }
     .card:hover{ transform: translateY(-2px); filter: var(--glow); }
 
     .list{display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:10px; margin-top:12px}
     .row{display:flex; align-items:center; gap:10px}
     .from{color:#fff; font-weight:700; margin-right:auto}
-    .subject{font-weight:600}
-    .snippet{color:var(--muted); margin-top:6px}
+    .subject{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .snippet{color:var(--muted); margin-top:6px; overflow:hidden; text-overflow:ellipsis; max-height:2.6em}
     .small{font-size:12px; color:var(--muted)}
 
-    /* === AUTH LOCK === */
+    /* === AUTH LOCK (bloque l’UI tant que non connecté à ATMOS) === */
     .auth-block{
       position:fixed; inset:0; display:none; align-items:center; justify-content:center;
       background:rgba(3,6,16,.65); backdrop-filter:blur(3px); z-index:9999;
@@ -108,10 +103,39 @@
     body.auth-locked .auth-block{ display:flex; }
     body.auth-locked .container{ pointer-events:none; filter:grayscale(1) opacity(.35) }
 
+    /* === MODALE LECTURE/REPONSE === */
+    .modal{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(3,6,16,.55); z-index:2000; backdrop-filter: blur(2px);
+    }
+    .modal .card{
+      width:min(900px,calc(100vw - 32px)); max-height:90vh; overflow:auto;
+      border:1px solid var(--grid); border-radius:16px; padding:12px; background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+      cursor:default;
+    }
+    .viewer{
+      border:1px solid var(--grid); border-radius:12px; overflow:hidden; height:360px; background:#0a0f20;
+    }
+    .viewer iframe{ width:100%; height:360px; border:0; display:block; }
+    .reply{
+      margin-top:12px; border:1px solid var(--grid); border-radius:12px; padding:10px; background:rgba(255,255,255,.03);
+    }
+    .toolbar{
+      display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    }
+    .toolbar select{
+      height:32px; border:1px solid var(--grid); border-radius:8px; background:rgba(8,12,28,.6); color:var(--text); padding:0 8px;
+    }
+    .editor{
+      min-height:140px; padding:10px; border:1px solid var(--grid); border-radius:8px; background:rgba(0,0,0,.25);
+      outline:none; white-space:pre-wrap;
+    }
+    .modal .actions{display:flex; gap:8px; justify-content:flex-end; margin-top:10px}
     @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
   </style>
 
-  <!-- Déclare l'init GAPI AVANT le chargement du script -->
+  <!-- Pré-init GAPI -->
   <script>
     window.__gapiReady = false;
     window.__gapiError = null;
@@ -148,7 +172,6 @@
   <div class="container">
     <div class="topbar" role="toolbar" aria-label="Navigation mails">
       <h1>MAILS — <span class="appname">ATMOS</span></h1>
-      <!-- type="button" => évite tout comportement par défaut -->
       <button class="btn" id="googleBtn" type="button" title="Se connecter à Google (Gmail)">Google</button>
       <button class="btn" id="msBtn" type="button" title="Se connecter à Microsoft (Outlook/Office 365)">Microsoft</button>
       <button class="btn" id="logoutBtn" type="button" title="Se déconnecter" disabled>Déconnexion</button>
@@ -166,6 +189,42 @@
       <p>Connectez-vous sur <strong>ATMOS</strong> pour utiliser le module <strong>Mails</strong>.</p>
       <div class="actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
         <a id="authGoAtmos" class="btn">Se connecter sur ATMOS</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE LECTURE + RÉPONSE -->
+  <div id="mailModal" class="modal" aria-hidden="true" role="dialog" aria-label="Lecture du message">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div id="mmSubject" class="subject" style="font-size:16px"></div>
+          <div id="mmMeta" class="small"></div>
+        </div>
+        <button id="mmClose" class="btn" type="button">Fermer</button>
+      </div>
+
+      <div class="viewer" style="margin-top:8px">
+        <iframe id="mmIframe" sandbox=""></iframe>
+      </div>
+
+      <div class="reply">
+        <div class="toolbar">
+          <label for="fontSelectReply" class="small">Police :</label>
+          <select id="fontSelectReply">
+            <option value="Outfit, -apple-system, Segoe UI, Roboto, Helvetica, Arial">Outfit (par défaut)</option>
+            <option value="Arial, Helvetica, sans-serif">Arial</option>
+            <option value="Roboto, Arial, sans-serif">Roboto</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Times New Roman', Times, serif">Times New Roman</option>
+            <option value="'Courier New', Courier, monospace">Courier New</option>
+          </select>
+        </div>
+        <div id="replyEditor" class="editor" contenteditable="true" spellcheck="true"
+             style="font-family:Outfit, -apple-system, Segoe UI, Roboto, Helvetica, Arial"></div>
+        <div class="actions">
+          <button id="mmSend" class="btn" type="button">Envoyer la réponse</button>
+        </div>
       </div>
     </div>
   </div>
@@ -191,24 +250,56 @@
     function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;","&gt;":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
     function fmtDate(d){ try{ return new Date(d).toLocaleString('fr-FR'); }catch{ return '' } }
 
-    // ===== Gmail helpers (send/reply) =====
+    // ===== Helpers MIME / Gmail (HTML) =====
     function extractEmailAddress(h){ const v = String(h||'').trim(); const m = v.match(/<([^>]+)>/); return m ? m[1] : v; }
     function toBase64Url(str){ const b64 = btoa(unescape(encodeURIComponent(str))); return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-    function buildMime({to, subject, body, inReplyTo, references}){
+    function buildMimeHtml({to, subject, html, inReplyTo, references}){
       const headers = [
         `To: ${to}`,
         `Subject: ${subject}`,
         inReplyTo ? `In-Reply-To: ${inReplyTo}` : '',
         references ? `References: ${references}` : '',
-        'Content-Type: text/plain; charset=UTF-8',
         'MIME-Version: 1.0',
-        '', body||''
+        'Content-Type: text/html; charset=UTF-8',
+        '', html || ''
       ].filter(Boolean).join('\r\n');
       return toBase64Url(headers);
     }
-    async function gmailSend({to, subject, body, threadId=null, inReplyTo=null, references=null}){
-      const raw = buildMime({to, subject, body, inReplyTo, references});
+    async function gmailSendHtml({to, subject, html, threadId=null, inReplyTo=null, references=null}){
+      const raw = buildMimeHtml({to, subject, html, inReplyTo, references});
       await gapi.client.gmail.users.messages.send({ userId:'me', resource: threadId ? { raw, threadId } : { raw } });
+    }
+
+    // ===== Décodage corps Gmail =====
+    function b64urlDecode(str){
+      try{
+        const normalized = (str||'').replace(/-/g,'+').replace(/_/g,'/');
+        const pad = normalized.length % 4 ? '='.repeat(4 - (normalized.length % 4)) : '';
+        return decodeURIComponent(escape(atob(normalized + pad)));
+      }catch{ return ''; }
+    }
+    function findPart(payload, mime){
+      if(!payload) return null;
+      if(payload.mimeType === mime && payload.body && payload.body.data) return payload;
+      if(Array.isArray(payload.parts)){
+        for(const p of payload.parts){
+          const f = findPart(p, mime);
+          if(f) return f;
+        }
+      }
+      return null;
+    }
+    function extractBody(payload){
+      // Priorité HTML, sinon texte
+      const htmlPart = findPart(payload, 'text/html');
+      if(htmlPart) return { type:'html', content: b64urlDecode(htmlPart.body.data) };
+      const textPart = findPart(payload, 'text/plain');
+      if(textPart) return { type:'text', content: `<pre style="white-space:pre-wrap;margin:0">${escapeHtml(b64urlDecode(textPart.body.data))}</pre>` };
+      // Dernier recours : body direct
+      if(payload.body && payload.body.data){
+        return { type:'raw', content: `<pre style="white-space:pre-wrap;margin:0">${escapeHtml(b64urlDecode(payload.body.data))}</pre>` };
+      }
+      return { type:'empty', content:'<div style="opacity:.7">— (aucun contenu) —</div>' };
     }
 
     // ================= GOOGLE (GMAIL) =================
@@ -263,20 +354,21 @@
       googleTokenClient.requestAccessToken({ prompt:'consent' });
     }
 
-    function addCard({from, subject, snippet, when, link, onReply}){
+    // ===== Liste + ouverture modale =====
+    function addCard({id, from, subject, snippet, when, onOpen}){
       const div = document.createElement('div');
       div.className = 'card';
+      div.setAttribute('role','button');
+      div.setAttribute('tabindex','0');
       div.innerHTML = `
         <div class="row"><div class="from">${escapeHtml(from||'—')}</div><div class="small">${when||''}</div></div>
-        <div class="subject">${escapeHtml(subject||'(Sans objet)')}</div>
+        <div class="row"><div class="subject">${escapeHtml(subject||'(Sans objet)')}</div><span class="spacer"></span><button class="btn" type="button">Ouvrir</button></div>
         ${snippet?`<div class="snippet">${escapeHtml(snippet)}</div>`:''}
-        <div class="row" style="margin-top:8px">
-          ${link?`<a class="small" href="${link}" target="_blank" rel="noopener noreferrer">Ouvrir la boîte mail ↗</a>`:''}
-          <span class="spacer"></span>
-          <button class="btn" type="button">Répondre</button>
-        </div>
       `;
-      div.querySelector('button.btn').addEventListener('click', onReply);
+      const open = ()=> onOpen && onOpen();
+      div.addEventListener('click', open);
+      div.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); open(); }});
+      div.querySelector('button').addEventListener('click', (e)=>{ e.stopPropagation(); open(); });
       emailsEl.appendChild(div);
     }
 
@@ -290,39 +382,17 @@
         for(const m of msgs){
           const detail = await gapi.client.gmail.users.messages.get({
             userId:'me', id:m.id, format:'metadata',
-            metadataHeaders:['Subject','From','Date','Message-Id','References','Reply-To']
+            metadataHeaders:['Subject','From','Date']
           });
           const headers = (detail.result.payload.headers||[]);
           const h = Object.fromEntries(headers.map(x=>[x.name.toLowerCase(), x.value]));
-          const threadId = detail.result.threadId;
-          const messageId = h['message-id'] || '';
-          const references = h['references'] || messageId;
-          const replyToAddr = extractEmailAddress(h['reply-to'] || h['from']);
-
           addCard({
+            id: m.id,
             from: h['from'],
             subject: h['subject'],
             when: fmtDate(h['date']),
             snippet: detail.result.snippet,
-            link: 'https://mail.google.com/mail/u/0/#inbox',
-            onReply: async ()=>{
-              const replyText = prompt('Votre réponse :');
-              if(!replyText) return;
-              try{
-                await gmailSend({
-                  to: replyToAddr,
-                  subject: 'Re: ' + (h['subject'] || ''),
-                  body: replyText,
-                  threadId,
-                  inReplyTo: messageId,
-                  references
-                });
-                alert('Réponse envoyée ✅');
-              }catch(e){
-                console.error(e);
-                alert('Échec de l’envoi (scope gmail.send, API Gmail activée, ou origin non autorisée).');
-              }
-            }
+            onOpen: ()=> openMail(m.id)
           });
         }
         setStatus(`Affichage de ${msgs.length} messages (Gmail).`);
@@ -332,13 +402,101 @@
       }
     }
 
-    function logoutGoogle(){
-      try{
-        const tok = gapi.client.getToken();
-        if(tok && tok.access_token){ google.accounts.oauth2.revoke(tok.access_token, ()=>{}); }
-      }catch{}
-      gapi.client.setToken('');
+    // ===== Modale =====
+    const mailModal = document.getElementById('mailModal');
+    const mmClose   = document.getElementById('mmClose');
+    const mmSubject = document.getElementById('mmSubject');
+    const mmMeta    = document.getElementById('mmMeta');
+    const mmIframe  = document.getElementById('mmIframe');
+    const mmSend    = document.getElementById('mmSend');
+    const replyEditor = document.getElementById('replyEditor');
+    const fontSelectReply = document.getElementById('fontSelectReply');
+
+    let currentMsgCtx = null; // { id, threadId, replyTo, subject, messageId, references }
+
+    fontSelectReply.addEventListener('change', ()=>{
+      replyEditor.style.fontFamily = fontSelectReply.value;
+    });
+
+    function openModal(){
+      mailModal.style.display = 'flex';
+      mailModal.setAttribute('aria-hidden','false');
     }
+    function closeModal(){
+      mailModal.style.display = 'none';
+      mailModal.setAttribute('aria-hidden','true');
+      currentMsgCtx = null;
+      replyEditor.innerHTML = '';
+    }
+    mmClose.addEventListener('click', closeModal);
+    mailModal.addEventListener('click', (e)=>{ if(e.target===mailModal) closeModal(); });
+
+    async function openMail(id){
+      try{
+        setStatus('Ouverture du message…');
+        const detail = await gapi.client.gmail.users.messages.get({
+          userId:'me', id, format:'full'
+        });
+
+        const payload = detail.result.payload;
+        const headers = Object.fromEntries((payload.headers||[]).map(x=>[x.name.toLowerCase(), x.value]));
+        const subj = headers['subject'] || '(Sans objet)';
+        const from = headers['from'] || '—';
+        const date = headers['date'] ? fmtDate(headers['date']) : '';
+        const replyToAddr = extractEmailAddress(headers['reply-to'] || headers['from'] || '');
+        const body = extractBody(payload);
+
+        currentMsgCtx = {
+          id,
+          threadId: detail.result.threadId,
+          replyTo: replyToAddr,
+          subject: subj,
+          messageId: headers['message-id'] || '',
+          references: headers['references'] || (headers['message-id'] || '')
+        };
+
+        mmSubject.textContent = subj;
+        mmMeta.textContent = `${from} — ${date}`;
+        // Affiche dans un iframe sandboxé (pas de scripts exécutés)
+        mmIframe.srcdoc = `
+          <!doctype html><html><head><meta charset="utf-8">
+          <meta name="color-scheme" content="dark light">
+          <style>body{margin:0;padding:12px;font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:#111}
+          @media (prefers-color-scheme: dark){ body{color:#eaeef6;background:#0a0f20} a{color:#7dd3fc} }</style>
+          </head><body>${body.content}</body></html>
+        `;
+        replyEditor.style.fontFamily = fontSelectReply.value;
+        replyEditor.focus();
+        openModal();
+        setStatus('Message ouvert.');
+      }catch(e){
+        console.error(e);
+        setStatus('Impossible d’ouvrir le message.');
+      }
+    }
+
+    mmSend.addEventListener('click', async ()=>{
+      if(!currentMsgCtx) return;
+      const html = `<div style="font-family:${fontSelectReply.value}; white-space:pre-wrap">${replyEditor.innerHTML || ''}</div>`;
+      if(!html.replace(/<[^>]*>/g,'').trim()){
+        if(!confirm("Le message est vide. Envoyer quand même ?")) return;
+      }
+      try{
+        await gmailSendHtml({
+          to: currentMsgCtx.replyTo,
+          subject: 'Re: ' + (currentMsgCtx.subject || ''),
+          html,
+          threadId: currentMsgCtx.threadId,
+          inReplyTo: currentMsgCtx.messageId,
+          references: currentMsgCtx.references
+        });
+        alert('Réponse envoyée ✅');
+        closeModal();
+      }catch(e){
+        console.error(e);
+        alert('Échec de l’envoi (scope gmail.send, API Gmail activée, origin autorisée).');
+      }
+    });
 
     // ================= MICROSOFT (Outlook) =================
     const msalInstance = new msal.PublicClientApplication({
@@ -373,36 +531,43 @@
         if(items.length===0){ setStatus('Aucun message dans la boîte de réception (Outlook).'); return; }
         for(const m of items){
           addCard({
+            id: m.id,
             from: (m.from && (m.from.emailAddress.name||m.from.emailAddress.address)) || '—',
             subject: m.subject || '(Sans objet)',
             when: fmtDate(m.receivedDateTime),
             snippet: m.bodyPreview || '',
-            link: 'https://outlook.office.com/mail/inbox',
-            onReply: ()=> alert('Réponse Outlook non implémentée dans ce prototype.')
+            onOpen: ()=> alert('Lecture détaillée Outlook non implémentée dans ce prototype.')
           });
         }
         setStatus(`Affichage de ${items.length} messages (Outlook).`);
       }catch(e){ console.error(e); setStatus('Erreur Outlook (Client ID/Redirect URI).'); }
     }
 
-    // ================= Binding UI (solide) =================
+    // ================= Binding UI =================
     function bindButtons(){
       googleBtn.disabled = document.body.classList.contains('auth-locked');
       msBtn.disabled = document.body.classList.contains('auth-locked');
 
-      // sécurité : on force le handler (si un autre script l’enlève)
       googleBtn.onclick = (e)=>{ e.stopPropagation(); loginGoogle(); };
       msBtn.onclick = (e)=>{ e.stopPropagation(); loginMicrosoft(); };
       logoutBtn.onclick = ()=>{
-        if(currentProvider==='google') logoutGoogle();
-        if(currentProvider==='microsoft') msalInstance.logoutPopup({ postLogoutRedirectUri: window.location.href });
+        if(currentProvider==='google'){
+          try{
+            const tok = gapi.client.getToken();
+            if(tok && tok.access_token){ google.accounts.oauth2.revoke(tok.access_token, ()=>{}); }
+          }catch{}
+          gapi.client.setToken('');
+        }
+        if(currentProvider==='microsoft'){
+          msalInstance.logoutPopup({ postLogoutRedirectUri: window.location.href });
+        }
         currentProvider=null; clearList(); setStatus('Déconnecté.'); logoutBtn.disabled = true;
       };
     }
     bindButtons();
   </script>
 
-  <!-- === Supabase + Garde d'auth ATMOS (sans piège de capture globale) === -->
+  <!-- === Supabase + Garde d'auth ATMOS === -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const PROJECT_REF = "jlfvbggzdkkwrmpsamvz";
@@ -420,16 +585,13 @@
 
     function setAuthLocked(on){
       document.body.classList.toggle('auth-locked', !!on);
-      // on force l’overlay visuellement aussi (pas seulement via classe)
       document.getElementById('authBlock').style.display = on ? 'flex' : 'none';
-      // (dés)active explicitement les boutons
       document.getElementById('googleBtn').disabled = !!on;
       document.getElementById('msBtn').disabled = !!on;
       document.getElementById('logoutBtn').disabled = true;
       const s = document.getElementById('status');
       if(on){ s.textContent = "Connexion à ATMOS requise."; }
       else if(!s.textContent || s.textContent.includes("ATMOS")){ s.textContent = "Choisissez un fournisseur et connectez-vous."; }
-      // rebinder (au cas où des listeners aient été perdus)
       bindButtons();
     }
 
