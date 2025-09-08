@@ -82,10 +82,28 @@
     .snippet{color:var(--muted); margin-top:6px}
     .small{font-size:12px; color:var(--muted)}
 
+    /* === AUTH LOCK (bloque l’UI tant que non connecté à ATMOS) === */
+    .auth-block{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(3,6,16,.65); backdrop-filter:blur(3px); z-index:9999;
+    }
+    .auth-card{
+      width:min(520px,calc(100vw - 32px)); padding:16px; border-radius:16px;
+      border:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+      box-shadow:0 20px 40px rgba(0,0,0,.45); color:var(--text);
+    }
+    .auth-card h3{ margin:0 0 8px; font-family:Orbitron,sans-serif; letter-spacing:.06em }
+
+    body.auth-locked .auth-block{ display:flex; }
+    body.auth-locked .container{
+      pointer-events:none; filter:grayscale(1) opacity(.35)
+    }
+
     @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
   </style>
 </head>
-<body>
+<body class="auth-locked">
   <div class="container">
     <div class="topbar" role="toolbar" aria-label="Navigation mails">
       <h1>MAILS — <span class="appname">ATMOS</span></h1>
@@ -97,6 +115,17 @@
     </div>
 
     <div id="emails" class="list" aria-live="polite"></div>
+  </div>
+
+  <!-- Blocage Auth ATMOS -->
+  <div id="authBlock" class="auth-block" aria-live="polite" role="alert">
+    <div class="auth-card">
+      <h3>Connexion nécessaire</h3>
+      <p>Connectez-vous sur <strong>ATMOS</strong> pour utiliser le module <strong>Mails</strong>.</p>
+      <div class="actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <a id="authGoAtmos" class="btn">Se connecter sur ATMOS</a>
+      </div>
+    </div>
   </div>
 
   <!-- Google APIs: gapi + Google Identity Services -->
@@ -115,6 +144,8 @@
     const emailsEl = document.getElementById('emails');
     const statusEl = document.getElementById('status');
     const logoutBtn = document.getElementById('logoutBtn');
+    const googleBtn = document.getElementById('googleBtn');
+    const msBtn = document.getElementById('msBtn');
     let currentProvider = null; // 'google' | 'microsoft'
 
     function setStatus(msg){ statusEl.textContent = msg; }
@@ -137,7 +168,6 @@
     let googleTokenClient = null; let gapiReady = false;
 
     window.addEventListener('load', () => {
-      // Charger gapi client
       if (window.gapi) {
         gapi.load('client', async () => {
           await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest'] });
@@ -247,6 +277,70 @@
       if(currentProvider==='microsoft') msalInstance.logoutPopup({ postLogoutRedirectUri: window.location.href });
       currentProvider=null; clearList(); setStatus('Déconnecté.'); logoutBtn.disabled = true;
     });
+  </script>
+
+  <!-- === Supabase + Garde d'auth ATMOS === -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // --- CONFIG : même projet Supabase que ATMOS ---
+    const PROJECT_REF = "jlfvbggzdkkwrmpsamvz";
+    const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
+
+    // ⚙️ Ajuste le chemin d’ATMOS si besoin
+    const ATMOS_URL = location.origin + "/atmos/";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage,
+        storageKey: `sb-${PROJECT_REF}-auth-token` // identique à ATMOS
+      }
+    });
+
+    const authGo = document.getElementById('authGoAtmos');
+    if (authGo) authGo.href = ATMOS_URL + "?r=" + encodeURIComponent(location.href);
+
+    function setAuthLocked(on){
+      document.body.classList.toggle('auth-locked', !!on);
+      // Optionnel : griser les boutons pour clarté
+      const disabled = !!on;
+      document.getElementById('googleBtn').disabled = disabled;
+      document.getElementById('msBtn').disabled = disabled;
+      document.getElementById('logoutBtn').disabled = true;
+      const s = document.getElementById('status');
+      if(disabled){
+        s.textContent = "Connexion à ATMOS requise.";
+      }else if(!s.textContent || s.textContent.includes("ATMOS")){
+        s.textContent = "Choisissez un fournisseur et connectez-vous.";
+      }
+    }
+
+    async function checkAuth(){
+      const { data } = await supabase.auth.getSession();
+      setAuthLocked(!data?.session);
+    }
+
+    // Réagit aux login/logout effectués sur ATMOS (même projet Supabase)
+    supabase.auth.onAuthStateChange((_evt, session) => setAuthLocked(!session));
+
+    // Coupe *toutes* les interactions quand c'est verrouillé (capture globale)
+    ['pointerdown','wheel','keydown','contextmenu'].forEach(ev=>{
+      window.addEventListener(ev, (e)=>{
+        if (document.body.classList.contains('auth-locked')) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, { capture:true, passive:false });
+    });
+
+    // Démarrage
+    checkAuth();
+    if (location.protocol === "file:") {
+      console.warn("⚠️ Ouvre via HTTPS (ou un serveur local) pour que l’auth fonctionne.");
+    }
   </script>
 </body>
 </html>
