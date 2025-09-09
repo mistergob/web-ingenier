@@ -174,6 +174,7 @@
       <h1>MAILS — <span class="appname">NEXUS</span></h1>
       <button class="btn" id="googleBtn" type="button" title="Se connecter à Google (Gmail)">Google</button>
       <button class="btn" id="msBtn" type="button" title="Se connecter à Microsoft (Outlook/Office 365)">Microsoft</button>
+      <button class="btn" id="refreshBtn" type="button" title="Actualiser la liste">Actualiser</button>
       <button class="btn" id="logoutBtn" type="button" title="Se déconnecter" disabled>Déconnexion</button>
       <div class="spacer"></div>
       <span id="status" class="status">Choisissez un fournisseur et connectez-vous.</span>
@@ -241,6 +242,7 @@
     const emailsEl = document.getElementById('emails');
     const statusEl = document.getElementById('status');
     const logoutBtn = document.getElementById('logoutBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
     const googleBtn = document.getElementById('googleBtn');
     const msBtn = document.getElementById('msBtn');
     let currentProvider = null;
@@ -353,10 +355,10 @@
           }
         });
       }
-      googleTokenClient.requestAccessToken({ prompt:'consent' });
+      // prompt:'consent' si première fois, sinon 'none' peut suffire
+      googleTokenClient.requestAccessToken({ prompt:'' });
     }
 
-    // ===== Liste + ouverture modale =====
     function addCard({id, from, subject, snippet, when, onOpen}){
       const div = document.createElement('div');
       div.className = 'card';
@@ -400,7 +402,22 @@
         setStatus(`Affichage de ${msgs.length} messages (Gmail).`);
       }catch(e){
         console.error(e);
-        setStatus('Erreur Gmail (Client ID / scopes / Gmail API / Origin).');
+        // 401 => token Atmos expiré : tente une réauth silencieuse via GSI
+        if(e?.status === 401 || e?.result?.error?.code === 401){
+          try{
+            await ensureGsiLoaded();
+            if(!googleTokenClient){
+              googleTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
+                callback: (resp)=>{ if(resp?.access_token){ gapi.client.setToken({ access_token: resp.access_token }); listGmail(); } }
+              });
+            }
+            googleTokenClient.requestAccessToken({ prompt:'' });
+            return;
+          }catch{}
+        }
+        setStatus('Erreur Gmail (token invalide/origin/API). Utilisez « Google » pour vous reconnecter.');
       }
     }
 
@@ -416,9 +433,7 @@
 
     let currentMsgCtx = null; // { id, threadId, replyTo, subject, messageId, references }
 
-    fontSelectReply.addEventListener('change', ()=>{
-      replyEditor.style.fontFamily = fontSelectReply.value;
-    });
+    fontSelectReply.addEventListener('change', ()=>{ replyEditor.style.fontFamily = fontSelectReply.value; });
 
     function openModal(){
       mailModal.style.display = 'flex';
@@ -549,6 +564,13 @@
 
       googleBtn.onclick = (e)=>{ e.stopPropagation(); loginGoogle(); };
       msBtn.onclick = (e)=>{ e.stopPropagation(); loginMicrosoft(); };
+
+      refreshBtn.onclick = async ()=>{
+        if(currentProvider === 'google'){ await listGmail(); }
+        else if(currentProvider === 'microsoft'){ setStatus('Actualisation Outlook non implémentée.'); }
+        else { setStatus('Connectez-vous d’abord.'); }
+      };
+
       logoutBtn.onclick = ()=>{
         if(currentProvider==='google'){
           try{
@@ -573,17 +595,13 @@
     const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
 
-    // ✅ URL ATMOS (casse exacte sur GitHub Pages)
+    // ⚠️ URL ATMOS (respecte la casse GitHub Pages)
     const ATMOS_URL = "https://mistergob.github.io/Atmos/";
 
+    const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`; // identique à ATMOS/ORIS/SPHAIRA
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession:true,
-        autoRefreshToken:true,
-        detectSessionInUrl:true,
-        storage: window.localStorage,
-        storageKey: `sb-${PROJECT_REF}-auth-token` // identique à ATMOS/ORIS/SPHAIRA
-      }
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true,
+        storage: window.localStorage, storageKey: STORAGE_KEY }
     });
 
     const authGo = document.getElementById('authGoAtmos');
@@ -594,6 +612,7 @@
       document.getElementById('authBlock').style.display = on ? 'flex' : 'none';
       document.getElementById('googleBtn').disabled = !!on;
       document.getElementById('msBtn').disabled = !!on;
+      document.getElementById('refreshBtn').disabled = !!on;
       document.getElementById('logoutBtn').disabled = true;
       const s = document.getElementById('status');
       if(on){ s.textContent = "Connexion à ATMOS requise."; }
@@ -601,12 +620,50 @@
       bindButtons();
     }
 
-    async function checkAuth(){
-      const { data } = await supabase.auth.getSession();
-      setAuthLocked(!data?.session);
+    // ===== Auto-connexion Gmail via SSO ATMOS =====
+    async function tryGoogleFromAtmos(){
+      try{
+        const { data } = await supabase.auth.getSession();
+        const session = data?.session;
+        if(!session) return false;
+
+        // provider_token dispo si login via Google dans ATMOS (avec scopes Gmail)
+        const provider = session.user?.app_metadata?.provider;
+        const accessToken = session.provider_token; // <- Supabase le fournit pour Google
+        if(provider === 'google' && accessToken){
+          await waitForGapiReady();
+          if(!window.__gapiReady){ return false; }
+          gapi.client.setToken({ access_token: accessToken });
+          currentProvider = 'google';
+          logoutBtn.disabled = false;
+          setStatus('Connecté à Gmail via ATMOS. Chargement des messages…');
+          await listGmail();
+          return true;
+        }
+        return false;
+      }catch(err){
+        console.warn('[NEXUS] Pas de provider_token Google depuis ATMOS', err);
+        return false;
+      }
     }
 
-    supabase.auth.onAuthStateChange((_evt, session) => setAuthLocked(!session));
+    async function checkAuth(){
+      const { data } = await supabase.auth.getSession();
+      const hasSession = !!data?.session;
+      setAuthLocked(!hasSession);
+      if(hasSession){
+        // tente l’auto-connexion Gmail si possible
+        const ok = await tryGoogleFromAtmos();
+        if(!ok){
+          setStatus('Session ATMOS active. Cliquez sur Google pour connecter Gmail.');
+        }
+      }
+    }
+
+    supabase.auth.onAuthStateChange(async (_evt, session) => {
+      setAuthLocked(!session);
+      if(session){ await tryGoogleFromAtmos(); }
+    });
 
     // Démarrage
     checkAuth();
