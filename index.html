@@ -171,7 +171,7 @@
 <body class="auth-locked">
   <div class="container">
     <div class="topbar" role="toolbar" aria-label="Navigation mails">
-      <h1>MAILS — <span class="appname">ATMOS</span></h1>
+      <h1>MAILS — <span class="appname">NEXUS</span></h1>
       <button class="btn" id="googleBtn" type="button" title="Se connecter à Google (Gmail)">Google</button>
       <button class="btn" id="msBtn" type="button" title="Se connecter à Microsoft (Outlook/Office 365)">Microsoft</button>
       <button class="btn" id="logoutBtn" type="button" title="Se déconnecter" disabled>Déconnexion</button>
@@ -247,7 +247,11 @@
 
     function setStatus(msg){ statusEl.textContent = msg; }
     function clearList(){ emailsEl.innerHTML = ''; }
-    function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;","&gt;":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+    function escapeHtml(s){
+      return String(s||'').replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[c]));
+    }
     function fmtDate(d){ try{ return new Date(d).toLocaleString('fr-FR'); }catch{ return '' } }
 
     // ===== Helpers MIME / Gmail (HTML) =====
@@ -290,12 +294,10 @@
       return null;
     }
     function extractBody(payload){
-      // Priorité HTML, sinon texte
       const htmlPart = findPart(payload, 'text/html');
       if(htmlPart) return { type:'html', content: b64urlDecode(htmlPart.body.data) };
       const textPart = findPart(payload, 'text/plain');
       if(textPart) return { type:'text', content: `<pre style="white-space:pre-wrap;margin:0">${escapeHtml(b64urlDecode(textPart.body.data))}</pre>` };
-      // Dernier recours : body direct
       if(payload.body && payload.body.data){
         return { type:'raw', content: `<pre style="white-space:pre-wrap;margin:0">${escapeHtml(b64urlDecode(payload.body.data))}</pre>` };
       }
@@ -434,9 +436,7 @@
     async function openMail(id){
       try{
         setStatus('Ouverture du message…');
-        const detail = await gapi.client.gmail.users.messages.get({
-          userId:'me', id, format:'full'
-        });
+        const detail = await gapi.client.gmail.users.messages.get({ userId:'me', id, format:'full' });
 
         const payload = detail.result.payload;
         const headers = Object.fromEntries((payload.headers||[]).map(x=>[x.name.toLowerCase(), x.value]));
@@ -457,7 +457,6 @@
 
         mmSubject.textContent = subj;
         mmMeta.textContent = `${from} — ${date}`;
-        // Affiche dans un iframe sandboxé (pas de scripts exécutés)
         mmIframe.srcdoc = `
           <!doctype html><html><head><meta charset="utf-8">
           <meta name="color-scheme" content="dark light">
@@ -574,10 +573,17 @@
     const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
 
-    const ATMOS_URL = location.origin + "/atmos/";
+    // ✅ URL ATMOS (casse exacte sur GitHub Pages)
+    const ATMOS_URL = "https://mistergob.github.io/Atmos/";
+
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true,
-        storage: window.localStorage, storageKey: `sb-${PROJECT_REF}-auth-token` }
+      auth: {
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true,
+        storage: window.localStorage,
+        storageKey: `sb-${PROJECT_REF}-auth-token` // identique à ATMOS/ORIS/SPHAIRA
+      }
     });
 
     const authGo = document.getElementById('authGoAtmos');
