@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>WEB ENGINEER — Développez votre visibilité</title>
+  <title>WebEngineer — Développez votre activité</title>
 
-  <!-- Fonts -->
+  <!-- Polices modernes -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -14,11 +14,14 @@
       --card:#12141c;
       --ink:#e8f0ff;
       --muted:#9fb0c3;
-      --primary:#ff7a59;       /* accent “œil” */
-      --accent:#6ee7ff;        /* léger néon */
+      --primary:#ff7a59;      /* accent oeil */
+      --accent:#6ee7ff;       /* liseré doux */
       --shadow:0 10px 30px rgba(0,0,0,.45);
       --radius:18px;
       --speed:.75s;
+
+      /* ouverture de l’œil (0 fermé → 1 ouvert), pilotée en JS au scroll */
+      --eye-open: 0;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -32,67 +35,75 @@
         var(--bg);
       line-height:1.5;
     }
-    a{color:inherit}
 
-    /* Layout */
     .wrap{max-width:1100px;margin:auto;padding:40px 20px 96px}
-    header{padding:36px 0 8px;text-align:center}
-    .kicker{letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600;font-size:.9rem}
-    h1{
-      margin:.25rem 0 0;font:700 clamp(36px,6vw,64px)/1 "Space Grotesk",Inter,sans-serif;
+    header{padding:18px 0 8px;text-align:center}
+
+    /* === Tailles échangées === */
+    .title{ /* WebEngineer → GRAND (ex h1) */
+      margin:.25rem 0 0;
+      font:700 clamp(42px,6.3vw,78px)/1 "Space Grotesk",Inter,sans-serif;
       letter-spacing:.01em;
     }
-    .sub{
-      font:600 clamp(18px,3.2vw,34px)/1.15 "Space Grotesk",Inter,sans-serif;
-      margin:18px 0 14px;
+    .tagline{ /* “Développer votre activité” → PETIT (ex kicker) */
+      margin:10px 0 0;
+      font-weight:600;
+      font-size:clamp(13px,1.2vw,16px);
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--accent);
     }
 
-    /* Eye icon */
+    /* Œil qui s’ouvre avec le scroll */
     .eye{
-      width:72px;height:72px;margin:14px auto 8px;display:block;color:var(--primary);
+      width:86px;height:86px;margin:16px auto 8px;display:block;color:var(--primary);
       filter:drop-shadow(0 0 12px rgba(255,122,89,.35));
     }
+    /* Iris qui “s’écrase / s’ouvre” selon le scroll */
+    .eye .iris{ transform:scaleY(var(--eye-open)); transform-origin:50% 50%; transition:transform .08s linear; }
+    /* Paupières (deux rectangles qui s’écartent subtilement) */
+    .eye .lid-top{ transform:translateY(calc((1 - var(--eye-open)) * 24px)); transition:transform .08s linear;}
+    .eye .lid-bot{ transform:translateY(calc((var(--eye-open) - 1) * 24px)); transition:transform .08s linear;}
 
-    /* Content blocks */
-    .grid{
-      margin-top:30px;display:grid;gap:36px;
-      grid-template-columns: 1fr;
+    /* Sections */
+    .grid{margin-top:30px;display:grid;gap:36px}
+    .stack-area{display:flex;align-items:center;gap:26px}
+    .stack-area.reverse{flex-direction:row-reverse}
+    @media (max-width:920px){
+      .stack-area,.stack-area.reverse{flex-direction:column}
     }
-    @media (min-width:920px){
-      .grid{grid-template-columns: 1.05fr .95fr}
-    }
+
     .card{
       background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
       border:1px solid rgba(255,255,255,.07);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
       padding:28px;
+      flex:1 1 520px;
     }
     h2{margin:0 0 .25rem;font:700 26px/1.15 "Space Grotesk",Inter,sans-serif}
     p.lead{margin:.25rem 0 1rem;color:var(--muted)}
     ul{margin:.25rem 0 0 1.1rem;padding:0}
     li{margin:.35rem 0}
-    .stack-area{display:flex;align-items:center;gap:20px}
-    .stack-area.reverse{flex-direction:row-reverse}
-    .stack-area .card{flex:1 1 540px}
-    .stack{flex:0 0 auto;position:relative;width:280px;height:180px;cursor:pointer}
-    @media (max-width:520px){.stack{width:240px;height:154px}}
 
-    /* Overlapped thumbnails (idle) */
+    /* Piles d’images */
+    .stack{flex:0 0 auto;position:relative;width:300px;height:188px;cursor:pointer}
+    @media (max-width:520px){.stack{width:260px;height:162px}}
+
     .shot{
       position:absolute;inset:0;border-radius:14px;overflow:hidden;
       box-shadow:0 14px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06) inset;
       transform-origin:center; transition:transform .45s ease, box-shadow .45s ease;
       background:#000;
     }
-    .shot:nth-child(1){transform:rotate(-4deg) translate(-12px,8px) scale(.98); z-index:1;}
+    .shot:nth-child(1){transform:rotate(-4deg) translate(-12px,8px) scale(.985); z-index:1;}
     .shot:nth-child(2){transform:rotate(0deg) translate(0,0) scale(1); z-index:2;}
-    .shot:nth-child(3){transform:rotate(5deg) translate(14px,-10px) scale(.98); z-index:1;}
+    .shot:nth-child(3){transform:rotate(5deg) translate(14px,-10px) scale(.985); z-index:1;}
     .shot img{width:100%;height:100%;object-fit:cover;display:block;opacity:.92; transition:opacity .4s ease}
     .stack:hover .shot{box-shadow:0 18px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.09) inset}
     .stack:hover .shot img{opacity:1}
 
-    /* Expansion overlay & animation */
+    /* Expansion + overlay */
     .overlay{
       position:fixed;inset:0;background:rgba(5,8,12,.62);
       opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:60;
@@ -111,7 +122,6 @@
     .stack.expanded .shot:nth-child(2){transform:translateX(0) rotate(0) scale(1)}
     .stack.expanded .shot:nth-child(3){transform:translateX(108%) rotate(0) scale(1)}
 
-    /* Mini button that appears after expansion */
     .open-btn{
       position:fixed;z-index:75;left:50%;top:calc(16vh + 32vh + 18px);
       transform:translate(-50%,6px); opacity:0; pointer-events:none;
@@ -124,7 +134,7 @@
     .open-btn.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
     .open-btn:focus-visible{outline:3px solid rgba(255,255,255,.55);outline-offset:3px}
     .hint{
-      font-size:.85rem;color:var(--muted);margin-top:8px;text-align:center
+      font-size:.85rem;color:var(--muted);margin-top:10px;text-align:center
     }
 
     /* Lightbox */
@@ -159,18 +169,28 @@
 
   <div class="wrap">
     <header>
-      <div class="kicker">WEB ENGINEER</div>
-      <h1>Développez votre visibilité</h1>
-      <!-- eye icon -->
-      <svg class="eye" viewBox="0 0 64 64" aria-hidden="true">
-        <path fill="currentColor" d="M32 14c-14.4 0-26.3 10-30 18 3.7 8 15.6 18 30 18s26.3-10 30-18c-3.7-8-15.6-18-30-18Zm0 31c-11.6 0-21.6-7.7-25.6-13 4-5.3 14-13 25.6-13S53.6 26.7 57.6 32C53.6 37.3 43.6 45 32 45Z"/>
-        <circle cx="32" cy="32" r="8" fill="currentColor" opacity=".65"/>
-        <circle cx="34.75" cy="29.25" r="2.25" fill="#fff"/>
+      <h1 class="title">WebEngineer</h1>
+      <div class="tagline">Développer votre activité</div>
+
+      <!-- Œil animé par le scroll -->
+      <svg class="eye" viewBox="0 0 200 120" aria-hidden="true">
+        <!-- Contour de l’œil -->
+        <path fill="currentColor" opacity=".9"
+              d="M100 10C53 10 18 39 5 60c13 21 48 50 95 50s82-29 95-50C182 39 147 10 100 10Zm0 12c39 0 70 21 83 38-13 17-44 38-83 38S30 77 17 60c13-17 44-38 83-38Z"/>
+        <!-- Paupières : légers caches qui s’écartent -->
+        <rect class="lid-top" x="0" y="0" width="200" height="60" fill="var(--bg)"></rect>
+        <rect class="lid-bot" x="0" y="60" width="200" height="60" fill="var(--bg)"></rect>
+        <!-- Iris + pupille (s’écrase verticalement quand fermé) -->
+        <g class="iris">
+          <ellipse cx="100" cy="60" rx="26" ry="26" fill="currentColor" opacity=".65"/>
+          <circle cx="100" cy="60" r="10" fill="#fff" opacity=".95"/>
+        </g>
       </svg>
-      <p class="hint">Cliquez sur l’une des piles d’images pour pré-visualiser la galerie.</p>
+
+      <p class="hint">Cliquez sur une pile d’images pour pré-visualiser la galerie.</p>
     </header>
 
-    <!-- Block 1 -->
+    <!-- ====== Bloc 1 : photos à gauche / texte à droite ====== -->
     <section class="stack-area">
       <div class="stack"
            aria-label="Accès à la galerie — Exemple 1"
@@ -186,7 +206,7 @@
       </div>
 
       <div class="card">
-        <h2>Création de votre site internet personnalisé.</h2>
+        <h2>Création de votre site internet personnalisé</h2>
         <p class="lead">Rapide et abordable.</p>
         <ul>
           <li>Choisissez le modèle qui vous convient</li>
@@ -197,10 +217,10 @@
       </div>
     </section>
 
-    <!-- Block 2 -->
+    <!-- ====== Bloc 2 : texte à gauche / photos à droite ====== -->
     <section class="stack-area reverse" style="margin-top:26px">
       <div class="card">
-        <h2>Création de votre site internet sur-mesure.</h2>
+        <h2>Création de votre site internet sur-mesure</h2>
         <p class="lead">Accompagnement dédié, du brief à la mise en ligne.</p>
         <ul>
           <li>Rendez-vous avec un membre de l’équipe</li>
@@ -225,7 +245,7 @@
     </section>
   </div>
 
-  <!-- Shared overlay + open button (instantiated once and moved as needed) -->
+  <!-- Overlay + bouton partagé -->
   <div class="overlay" id="overlay" aria-hidden="true"></div>
   <button class="open-btn" id="openBtn" type="button">Ouvrir la galerie</button>
 
@@ -241,7 +261,17 @@
   </div>
 
   <script>
-    // --- Helpers / state
+    /* ---------- Œil qui s’ouvre avec la barre de défilement ---------- */
+    function updateEye(){
+      const maxAt = Math.max(120, window.innerHeight * 0.35); // ouverture complète après ~35% du viewport
+      const open = Math.min(1, Math.max(0, window.scrollY / maxAt));
+      document.documentElement.style.setProperty('--eye-open', open.toFixed(3));
+    }
+    updateEye();
+    window.addEventListener('scroll', updateEye, {passive:true});
+    window.addEventListener('resize', updateEye);
+
+    /* ---------- Piles d’images → expansion + lightbox ---------- */
     const overlay = document.getElementById('overlay');
     const openBtn = document.getElementById('openBtn');
     const lightbox = document.getElementById('lightbox');
@@ -255,15 +285,13 @@
     let index = 0;
 
     function expand(stack){
-      if(activeStack) collapse();            // collapse any open one
+      if(activeStack) collapse();
       activeStack = stack;
       stack.classList.add('expanded');
       overlay.classList.add('show');
       overlay.setAttribute('aria-hidden','false');
-      // place the open button below the focused stack
       openBtn.classList.add('show');
       openBtn.onclick = () => openGallery(stack);
-      // allow closing by clicking outside the stack
       overlay.addEventListener('click', collapse, { once:true });
       document.addEventListener('keydown', escCollapse);
     }
@@ -278,11 +306,9 @@
     }
     function escCollapse(e){ if(e.key === 'Escape') collapse(); }
 
-    // open gallery modal
     function openGallery(stack){
       const data = stack.getAttribute('data-gallery');
       try{ gallery = JSON.parse(data); } catch{ gallery = []; }
-      // fallback: use the three visible thumbnails
       if(!gallery.length){
         gallery = [...stack.querySelectorAll('img')].map(i => i.src);
       }
@@ -294,7 +320,6 @@
     function closeGallery(){
       lightbox.classList.remove('show');
       document.removeEventListener('keydown', lbKeys);
-      // keep the expanded preview open; user can click outside to collapse
     }
     function showSlide(step){
       index = (index + step + gallery.length) % gallery.length;
@@ -306,12 +331,9 @@
       if(e.key === 'ArrowLeft') showSlide(-1);
     }
 
-    // Wire events
     document.querySelectorAll('.stack').forEach(stack=>{
       stack.addEventListener('click', (e)=>{
-        // ignore clicks on child button if ever inside
         if(e.target.closest('button')) return;
-        // if already expanded, do nothing (button handles open)
         if(stack.classList.contains('expanded')) return;
         expand(stack);
       }, false);
