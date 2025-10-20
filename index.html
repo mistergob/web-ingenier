@@ -152,6 +152,38 @@
       padding:8px 12px;font-weight:700;font-size:.95rem;letter-spacing:.01em
     }
     .credit{position:absolute;bottom:10px;right:12px;color:rgba(255,255,255,.75);font-size:.8rem}
+
+    /* === Spacing system (à ajuster si besoin) === */
+:root{
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --section-space: clamp(36px, 6vw, 72px);
+  --block-gap: clamp(20px, 3.5vw, 40px);
+}
+
+/* Marges générales */
+.wrap{ padding: 56px 20px 120px; }
+header{ padding: 24px 0 12px; margin-bottom: var(--section-space); }
+
+/* Espace entre les éléments d’un même bloc */
+.stack-area{ gap: var(--block-gap); }
+@media (max-width:920px){
+  .stack-area{ gap: var(--space-4); }
+}
+
+/* Espace vertical entre les sections successives */
+.stack-area + .stack-area{ margin-top: var(--section-space); }
+
+/* Spacing interne des cartes et listes */
+.card{ padding: 32px; }
+h2{ margin: 0 0 .75rem; }
+p.lead{ margin: .5rem 0 1.25rem; }
+li{ margin: .5rem 0; }
+
   </style>
 </head>
 <body>
@@ -191,7 +223,7 @@
     </section>
 
     <!-- ====== Bloc 2 : texte à gauche / photos à droite ====== -->
-    <section class="stack-area" style="margin-top:26px">
+    <section class="stack-area"
       <div class="card">
         <h2>Création de votre site internet sur-mesure</h2>
         <p class="lead">Accompagnement dédié, du brief à la mise en ligne.</p>
