@@ -171,6 +171,32 @@
             height: auto;
             /* Préserver les proportions */
         }
+
+        .column-2 {
+            color: #008000;
+        }
+
+        .column-2 .green-check,
+        .column-2 .gray-check {
+            color: inherit;
+        }
+
+        .column-2 .services-tooltip-container {
+            color: inherit;
+        }
+
+        .column-2-gray .column-2 {
+            color: #7a7a7a;
+        }
+
+        .column-2-gray .column-2 .green-check,
+        .column-2-gray .column-2 .gray-check {
+            color: inherit;
+        }
+
+        .column-2-gray .column-2 .services-tooltip-container {
+            color: inherit;
+        }
     </style>
 </head>
 <body>
@@ -200,20 +226,20 @@
 
         const tvaValuesBySelection = {
             'non|20%': ['20%', '0%', '0%', '20%', '20%'],
-            'non|10%': ['20%', '0%', '0%', '10%', '20%'],
+            'non|10%': ['10%', '0%', '0%', '10%', '20%'],
             'non|5.5%': ['20%', '0%', '0%', '5,5%', '20%'],
             'oui|20%': ['20%', '20%', '20%', '20%', '20%'],
-            'oui|10%': ['20%', '10%', '10%', '10%', '20%'],
+            'oui|10%': ['10%', '10%', '10%', '10%', '20%'],
             'oui|5.5%': ['20%', '5,5%', '5,5%', '5,5%', '20%']
         };
 
-        const tableTemplate = (tvaValues) => `
+        const tableTemplate = (tvaValues, isColumn2Gray) => `
   <div class="services-table-container">
-    <table>
+    <table class="${isColumn2Gray ? 'column-2-gray' : ''}">
       <thead>
         <tr>
           <th>Services</th>
-          <th class="wide-column"><img src="https://sapconseils.fr/wp-content/uploads/Logo-Vert-noir-Phenix-Sap.png" alt="PHENIX SAP" class="logo-img"></th>
+          <th class="wide-column column-2"><img src="https://sapconseils.fr/wp-content/uploads/Logo-Vert-noir-Phenix-Sap.png" alt="PHENIX SAP" class="logo-img"></th>
           <th class="wide-column"><img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="logo-img"></th>
 
           <th class="wide-column"><img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="logo-img"></th>
@@ -224,7 +250,7 @@
         </tr>
       </thead>
       <tbody>
-          <tr>
+        <tr>
           <td>
             <div class="services-tooltip-container">
               <span class="services-icon">
@@ -232,7 +258,7 @@
               </span>
             </div>
           </td>
-          <td class="wide-column">
+          <td class="wide-column column-2">
   <div class="services-tooltip-container-wrapper">
     <!-- Première image avec sa propre infobulle -->
     <div class="services-tooltip-container">
@@ -335,7 +361,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="services-tooltip-container">8h - 19h
               <div class="services-tooltip">
                 Ouvert de 8h à 19h<br>
@@ -373,7 +399,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="green-check">✔</div>
           </td>
           <td>
@@ -404,7 +430,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="green-check">✔</div>
           </td>
            <td>
@@ -435,7 +461,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="green-check">✔</div>
           </td>
           <td>
@@ -460,7 +486,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="green-check">✔</div>
           </td>
           <td>
@@ -485,7 +511,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="green-check">✔</div>
           </td>
           <td>
@@ -510,7 +536,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="gray-check">-</div>
           </td>
           <td>
@@ -535,7 +561,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="gray-check">-</div>
           </td>
           <td>
@@ -562,7 +588,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="services-tooltip-container">2
               <div class="services-tooltip">
                 Avance immédiate = 7
@@ -591,7 +617,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="gray-check">10%</div>
           </td>
           <td>
@@ -617,7 +643,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="gray-check">${tvaValues[0]}</div>
           </td>
           <td>
@@ -643,7 +669,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td class="column-2">
             <div class="gray-check">-</div>
           </td>
           <td>
@@ -675,7 +701,8 @@
                 return;
             }
 
-            resultDiv.innerHTML = tableTemplate(tvaValues);
+            const isColumn2Gray = tvaTaux === '5.5%';
+            resultDiv.innerHTML = tableTemplate(tvaValues, isColumn2Gray);
         }
 
         assujettiSelect.addEventListener('change', updateResult);
