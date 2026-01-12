@@ -5,38 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choix TVA et Affichage Dynamique</title>
     <style>
-        .result {
+        .nexus-widget .result {
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
 
-        .mobile-comparison {
+        .nexus-widget .mobile-comparison {
             display: none;
         }
 
-        .services-table-container {
+        .nexus-widget .services-table-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             font-family: Arial, sans-serif;
         }
 
-        table {
+        .nexus-widget table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             margin-bottom: -10px;
         }
 
-        th,
-        td {
+        .nexus-widget th,
+        .nexus-widget td {
             border: 1px solid #ddd;
             padding: 8px;
         }
 
-        th {
+        .nexus-widget th {
             background-color: #f4f4f4 !important;
             cursor: pointer;
             color: black !important;
@@ -44,19 +44,19 @@
         }
 
         /* Ce sont les textes de la première colonne */
-        .services-icon {
+        .nexus-widget .services-icon {
             font-size: 20px;
             color: black;
             cursor: pointer;
             font-weight: bold;
         }
 
-        .services-title {
+        .nexus-widget .services-title {
             font-weight: bold;
             color: #333;
         }
 
-        .services-tooltip-container {
+        .nexus-widget .services-tooltip-container {
             position: relative;
             display: inline-block;
             cursor: pointer;
@@ -65,7 +65,7 @@
             font-size: 17px;
         }
 
-        .services-tooltip {
+        .nexus-widget .services-tooltip {
             visibility: hidden;
             background-color: rgba(0, 0, 0, 0.8);
             color: #fff;
@@ -82,41 +82,41 @@
             width: 250px;
         }
 
-        .services-tooltip-container:hover .services-tooltip {
+        .nexus-widget .services-tooltip-container:hover .services-tooltip {
             visibility: visible;
             opacity: 1;
         }
 
-        tr:nth-child(even) {
+        .nexus-widget tr:nth-child(even) {
             background-color: #f9f9f9;
         }
 
-        .green-check {
+        .nexus-widget .green-check {
             color: green;
             font-weight: bold;
         }
 
-        .gray-check {
+        .nexus-widget .gray-check {
             color: gray;
             font-weight: bold;
         }
 
-        .wide-column {
+        .nexus-widget .wide-column {
             width: 20%;
             /* Ajustez le pourcentage selon vos besoins */
         }
 
-        .orange-text {
+        .nexus-widget .orange-text {
             color: orange !important;
         }
 
-        td:not(:first-child),
-        th:not(:first-child) {
+        .nexus-widget td:not(:first-child),
+        .nexus-widget th:not(:first-child) {
             text-align: center;
             /* Centre le contenu sauf pour la première colonne */
         }
 
-        .logo-img {
+        .nexus-widget .logo-img {
             width: 300px;
             /* ou toute largeur souhaitée */
             height: auto;
@@ -125,13 +125,13 @@
             /* pour éviter que l'image dépasse le conteneur */
         }
 
-        .badge {
+        .nexus-widget .badge {
             width: 100%;
             max-width: 100%;
             height: auto;
         }
 
-        .services-tooltip-container-wrapper {
+        .nexus-widget .services-tooltip-container-wrapper {
             display: flex;
             align-items: center;
             /* Aligner les images verticalement */
@@ -140,14 +140,14 @@
             justify-content: center;
         }
 
-        .services-tooltip-container {
+        .nexus-widget .services-tooltip-container {
             display: flex;
             flex-direction: column;
             align-items: left;
             /* Centrer l'image et l'infobulle */
         }
 
-        .services-tooltip {
+        .nexus-widget .services-tooltip {
             margin-top: 10px;
             /* Espacement entre l'image et l'infobulle */
             text-align: center;
@@ -156,51 +156,51 @@
             /* Taille du texte de l'infobulle */
         }
 
-        .services-tooltip-container img {
+        .nexus-widget .services-tooltip-container img {
             width: 50px;
             /* Largeur personnalisée des images */
             height: auto;
             /* Préserver les proportions */
         }
 
-        .column-2 {
+        .nexus-widget .column-2 {
             color: #008000;
         }
 
-        .column-2 .green-check,
-        .column-2 .gray-check {
+        .nexus-widget .column-2 .green-check,
+        .nexus-widget .column-2 .gray-check {
             color: inherit;
         }
 
-        .column-2 .services-tooltip-container {
+        .nexus-widget .column-2 .services-tooltip-container {
             color: inherit;
         }
 
-        .column-2-gray .column-2 {
+        .nexus-widget .column-2-gray .column-2 {
             color: #7a7a7a;
         }
 
-        .column-2-gray .column-2 .green-check,
-        .column-2-gray .column-2 .gray-check {
+        .nexus-widget .column-2-gray .column-2 .green-check,
+        .nexus-widget .column-2-gray .column-2 .gray-check {
             color: inherit;
         }
 
-        .column-2-gray .column-2 .services-tooltip-container {
+        .nexus-widget .column-2-gray .column-2 .services-tooltip-container {
             color: inherit;
         }
 
         /* Affichage téléphone */
         @media (max-width: 768px) {
-            table {
+            .nexus-widget table {
                 display: none;
             }
 
-            .mobile-comparison {
+            .nexus-widget .mobile-comparison {
                 display: grid;
                 gap: 16px;
             }
 
-            .offer-card {
+            .nexus-widget .offer-card {
                 border: 1px solid #e0e0e0;
                 border-radius: 12px;
                 padding: 16px;
@@ -208,33 +208,33 @@
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             }
 
-            .offer-card h3 {
+            .nexus-widget .offer-card h3 {
                 margin: 12px 0 8px;
                 font-size: 20px;
             }
 
-            .offer-card.phoenix {
+            .nexus-widget .offer-card.phoenix {
                 color: #008000;
             }
 
-            .offer-card.phoenix.phoenix-gray {
+            .nexus-widget .offer-card.phoenix.phoenix-gray {
                 color: #7a7a7a;
             }
 
-            .offer-logo {
+            .nexus-widget .offer-logo {
                 display: block;
                 width: min(220px, 100%);
                 height: auto;
                 margin: 0 auto;
             }
 
-            .offer-section {
+            .nexus-widget .offer-section {
                 margin-top: 16px;
                 border-top: 1px solid #f0f0f0;
                 padding-top: 12px;
             }
 
-            .offer-list {
+            .nexus-widget .offer-list {
                 list-style: none;
                 padding: 0;
                 margin: 0;
@@ -242,74 +242,76 @@
                 gap: 12px;
             }
 
-            .offer-item {
+            .nexus-widget .offer-item {
                 display: grid;
                 gap: 6px;
             }
 
-            .offer-label {
+            .nexus-widget .offer-label {
                 font-weight: bold;
                 color: #333;
             }
 
-            .offer-value {
+            .nexus-widget .offer-value {
                 font-size: 16px;
             }
 
-            .offer-hint {
+            .nexus-widget .offer-hint {
                 font-size: 14px;
                 color: #555;
                 margin: 0;
             }
 
-            .offer-badges {
+            .nexus-widget .offer-badges {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 12px;
             }
 
-            .offer-badge {
+            .nexus-widget .offer-badge {
                 display: grid;
                 gap: 6px;
                 justify-items: center;
                 text-align: center;
             }
 
-            .offer-badge img {
+            .nexus-widget .offer-badge img {
                 width: 64px;
                 height: auto;
             }
 
-            .wide-column {
+            .nexus-widget .wide-column {
                 width: auto;
             }
         }
     </style>
 </head>
 <body>
-    <form id="tvaForm">
-        <label for="assujetti">Assujetti à TVA :</label>
-        <select id="assujetti">
-            <option value="oui">Oui</option>
-            <option value="non">Non</option>
-        </select>
-        <br><br>
-        <label for="tvaTaux">TVA de l'Activité :</label>
-        <select id="tvaTaux">
-            <option value="20%">20%</option>
-            <option value="10%">10%</option>
-            <option value="5.5%">5,5%</option>
-        </select>
-    </form>
+    <div class="nexus-widget">
+        <form id="nexusTvaForm">
+            <label for="nexusAssujetti">Assujetti à TVA :</label>
+            <select id="nexusAssujetti">
+                <option value="oui">Oui</option>
+                <option value="non">Non</option>
+            </select>
+            <br><br>
+            <label for="nexusTvaTaux">TVA de l'Activité :</label>
+            <select id="nexusTvaTaux">
+                <option value="20%">20%</option>
+                <option value="10%">10%</option>
+                <option value="5.5%">5,5%</option>
+            </select>
+        </form>
 
-    <div id="result" class="result">
-        Sélectionnez vos options pour afficher le résultat.
+        <div id="nexusResult" class="result">
+            Sélectionnez vos options pour afficher le résultat.
+        </div>
     </div>
 
     <script>
-        const assujettiSelect = document.getElementById('assujetti');
-        const tvaTauxSelect = document.getElementById('tvaTaux');
-        const resultDiv = document.getElementById('result');
+        const assujettiSelect = document.getElementById('nexusAssujetti');
+        const tvaTauxSelect = document.getElementById('nexusTvaTaux');
+        const resultDiv = document.getElementById('nexusResult');
 
         const tvaValuesBySelection = {
             'non|20%': ['20%', '0%', '0%', '20%', '20%'],
