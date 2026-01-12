@@ -12,17 +12,8 @@
             border-radius: 5px;
         }
 
-        /* Affichage téléphone */
-        @media (max-width: 768px) {
-            table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            .wide-column {
-                width: auto;
-            }
+        .mobile-comparison {
+            display: none;
         }
 
         .services-table-container {
@@ -196,6 +187,102 @@
 
         .column-2-gray .column-2 .services-tooltip-container {
             color: inherit;
+        }
+
+        /* Affichage téléphone */
+        @media (max-width: 768px) {
+            table {
+                display: none;
+            }
+
+            .mobile-comparison {
+                display: grid;
+                gap: 16px;
+            }
+
+            .offer-card {
+                border: 1px solid #e0e0e0;
+                border-radius: 12px;
+                padding: 16px;
+                background: #fff;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            }
+
+            .offer-card h3 {
+                margin: 12px 0 8px;
+                font-size: 20px;
+            }
+
+            .offer-card.phoenix {
+                color: #008000;
+            }
+
+            .offer-card.phoenix.phoenix-gray {
+                color: #7a7a7a;
+            }
+
+            .offer-logo {
+                display: block;
+                width: min(220px, 100%);
+                height: auto;
+                margin: 0 auto;
+            }
+
+            .offer-section {
+                margin-top: 16px;
+                border-top: 1px solid #f0f0f0;
+                padding-top: 12px;
+            }
+
+            .offer-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: grid;
+                gap: 12px;
+            }
+
+            .offer-item {
+                display: grid;
+                gap: 6px;
+            }
+
+            .offer-label {
+                font-weight: bold;
+                color: #333;
+            }
+
+            .offer-value {
+                font-size: 16px;
+            }
+
+            .offer-hint {
+                font-size: 14px;
+                color: #555;
+                margin: 0;
+            }
+
+            .offer-badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .offer-badge {
+                display: grid;
+                gap: 6px;
+                justify-items: center;
+                text-align: center;
+            }
+
+            .offer-badge img {
+                width: 64px;
+                height: auto;
+            }
+
+            .wide-column {
+                width: auto;
+            }
         }
     </style>
 </head>
@@ -468,7 +555,7 @@
             <div class="gray-check">✔</div>
           </td>
         </tr>
-         <tr>
+        <tr>
           <td>
             <div class="services-tooltip-container">
               <span class="services-icon">Relance des factures impayées</span>
@@ -494,6 +581,7 @@
           </td>
         </tr>
 
+        <tr>
           <td>
             <div class="services-tooltip-container">
               <span class="services-icon">Aide au recouvrement des créances</span>
@@ -519,7 +607,8 @@
           </td>
         </tr>
 
-<td>
+        <tr>
+          <td>
             <div class="services-tooltip-container">
               <span class="services-icon">Service Juridique</span>
               <div class="services-tooltip">
@@ -544,7 +633,8 @@
           </td>
         </tr>
 
-        <td>
+        <tr>
+          <td>
             <div class="services-tooltip-container">
               <span class="services-icon">Aide/Outils de communication</span>
               <div class="services-tooltip">
@@ -569,9 +659,8 @@
           </td>
         </tr>
 
-
-
-        <td>
+        <tr>
+          <td>
             <div class="services-tooltip-container">
               <span class="services-icon">Délai de rétribution (en jours) </span>
               <div class="services-tooltip">
@@ -596,7 +685,8 @@
           </td>
         </tr>
 
-        <td>
+        <tr>
+          <td>
             <div class="services-tooltip-container">
               <span class="services-icon">Commission </span>
               <div class="services-tooltip">
@@ -674,6 +764,344 @@
         </tr>
       </tbody>
     </table>
+    <div class="mobile-comparison">
+      <article class="offer-card phoenix ${isColumn2Gray ? 'phoenix-gray' : ''}">
+        <img src="https://sapconseils.fr/wp-content/uploads/Logo-Vert-noir-Phenix-Sap.png" alt="PHENIX SAP" class="offer-logo">
+        <h3>PHENIX SAP</h3>
+        <div class="offer-section">
+          <ul class="offer-list">
+            <li class="offer-item">
+              <span class="offer-label">Avantages</span>
+              <div class="offer-badges">
+                <div class="offer-badge">
+                  <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" alt="Avance Immédiate au crédit d'impôt">
+                  <p class="offer-hint">Vos clients règlent 50% du montant de la facture !</p>
+                </div>
+              </div>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Standard Téléphonique</span>
+              <span class="offer-value">8h - 20h</span>
+              <p class="offer-hint">Ouvert le samedi</p>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Attestations Fiscales envoi postal</span>
+              <span class="offer-value green-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Apport de clients</span>
+              <span class="offer-value green-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Espace en ligne</span>
+              <span class="offer-value green-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Relance des factures impayées</span>
+              <span class="offer-value green-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide au recouvrement des créances</span>
+              <span class="offer-value green-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Service Juridique</span>
+              <span class="offer-value gray-check">-</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide/Outils de communication</span>
+              <span class="offer-value gray-check">-</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Délai de rétribution (en jours)</span>
+              <span class="offer-value">2</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Commission</span>
+              <span class="offer-value">10%</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">TVA</span>
+              <span class="offer-value">${tvaValues[0]}</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Frais Fixes (TTC)</span>
+              <span class="offer-value">-</span>
+            </li>
+          </ul>
+        </div>
+      </article>
+      <article class="offer-card">
+        <img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="offer-logo">
+        <h3>COMINGAIA</h3>
+        <div class="offer-section">
+          <ul class="offer-list">
+            <li class="offer-item">
+              <span class="offer-label">Avantages</span>
+              <div class="offer-badges">
+                <div class="offer-badge">
+                  <img src="https://sapconseils.fr/wp-content/uploads/90.jpg" alt="coopérative SAP spécialiste des jardiniers paysagiste">
+                  <p class="offer-hint">Exclusive et dédiée aux Jardiniers &amp; Paysagistes</p>
+                </div>
+                <div class="offer-badge">
+                  <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" alt="Avance Immédiate au crédit d'impôt">
+                  <p class="offer-hint">Vos clients règlent 50% du montant de la facture !</p>
+                </div>
+              </div>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Standard Téléphonique</span>
+              <span class="offer-value">9h - 20h</span>
+              <p class="offer-hint">Ouvert le samedi</p>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Attestations Fiscales envoi postal</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Apport de clients</span>
+              <span class="offer-value">✔ <span class="orange-text">(+4%)</span></span>
+              <p class="offer-hint">Une commission supplémentaire de 4% est appliquée aux factures des clients apportés</p>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Espace en ligne</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Relance des factures impayées</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide au recouvrement des créances</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Service Juridique</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide/Outils de communication</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Délai de rétribution (en jours)</span>
+              <span class="offer-value">2</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Commission</span>
+              <span class="offer-value">8%</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">TVA</span>
+              <span class="offer-value">${tvaValues[1]}</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Frais Fixes (TTC)</span>
+              <span class="offer-value">-</span>
+            </li>
+          </ul>
+        </div>
+      </article>
+      <article class="offer-card">
+        <img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="offer-logo">
+        <h3>EASY SAP</h3>
+        <div class="offer-section">
+          <ul class="offer-list">
+            <li class="offer-item">
+              <span class="offer-label">Avantages</span>
+              <div class="offer-badges">
+                <div class="offer-badge">
+                  <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel">
+                  <p class="offer-hint">-25% de crédit d'impôt SAP pour les entreprises</p>
+                </div>
+                <div class="offer-badge">
+                  <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" alt="Avance Immédiate au crédit d'impôt">
+                  <p class="offer-hint">Vos clients règlent 50% du montant de la facture !</p>
+                </div>
+              </div>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Standard Téléphonique</span>
+              <span class="offer-value">9H30 - 12H30 <br> 13H30 - 16H30</span>
+              <p class="offer-hint">Fermé le Mercredi</p>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Attestations Fiscales envoi postal</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Apport de clients</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Espace en ligne</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Relance des factures impayées</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide au recouvrement des créances</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Service Juridique</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide/Outils de communication</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Délai de rétribution (en jours)</span>
+              <span class="offer-value">2</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Commission</span>
+              <span class="offer-value">10%</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">TVA</span>
+              <span class="offer-value">${tvaValues[2]}</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Frais Fixes (TTC)</span>
+              <span class="offer-value">-</span>
+            </li>
+          </ul>
+        </div>
+      </article>
+      <article class="offer-card">
+        <img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="offer-logo">
+        <h3>UNIPROS</h3>
+        <div class="offer-section">
+          <ul class="offer-list">
+            <li class="offer-item">
+              <span class="offer-label">Avantages</span>
+              <div class="offer-badges">
+                <div class="offer-badge">
+                  <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel">
+                  <p class="offer-hint">-25% de crédit d'impôt SAP pour les entreprises</p>
+                </div>
+                <div class="offer-badge">
+                  <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" alt="Avance Immédiate au crédit d'impôt">
+                  <p class="offer-hint">Vos clients règlent 50% du montant de la facture !</p>
+                </div>
+              </div>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Standard Téléphonique</span>
+              <span class="offer-value">8H - 20H</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Attestations Fiscales envoi postal</span>
+              <span class="offer-value">✔ <span class="orange-text">(*)</span></span>
+              <p class="offer-hint">Frais supplémentaires pour les envois postaux</p>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Apport de clients</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Espace en ligne</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Relance des factures impayées</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide au recouvrement des créances</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Service Juridique</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide/Outils de communication</span>
+              <span class="offer-value">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Délai de rétribution (en jours)</span>
+              <span class="offer-value">2</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Commission</span>
+              <span class="offer-value">0%</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">TVA</span>
+              <span class="offer-value">${tvaValues[3]}</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Frais Fixes (TTC)</span>
+              <span class="offer-value">47,99 € / mois</span>
+            </li>
+          </ul>
+        </div>
+      </article>
+      <article class="offer-card">
+        <h3>Offre 5</h3>
+        <div class="offer-section">
+          <ul class="offer-list">
+            <li class="offer-item">
+              <span class="offer-label">Avantages</span>
+              <span class="offer-value gray-check">-</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Standard Téléphonique</span>
+              <span class="offer-value gray-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Attestations Fiscales envoi postal</span>
+              <span class="offer-value gray-check">-</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Apport de clients</span>
+              <span class="offer-value gray-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Espace en ligne</span>
+              <span class="offer-value gray-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Relance des factures impayées</span>
+              <span class="offer-value gray-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide au recouvrement des créances</span>
+              <span class="offer-value gray-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Service Juridique</span>
+              <span class="offer-value gray-check">-</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Aide/Outils de communication</span>
+              <span class="offer-value gray-check">✔</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Délai de rétribution (en jours)</span>
+              <span class="offer-value gray-check">-</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Commission</span>
+              <span class="offer-value gray-check">12%</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">TVA</span>
+              <span class="offer-value gray-check">${tvaValues[4]}</span>
+            </li>
+            <li class="offer-item">
+              <span class="offer-label">Frais Fixes (TTC)</span>
+              <span class="offer-value gray-check">50€ / an</span>
+            </li>
+          </ul>
+        </div>
+      </article>
+    </div>
   </div>
 `;
 
