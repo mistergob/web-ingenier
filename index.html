@@ -140,6 +140,16 @@
             height: auto;
         }
 
+        .badge-text {
+            background-color: #f4f4f4;
+            border-radius: 12px;
+            color: #333;
+            display: inline-block;
+            font-size: 12px;
+            padding: 6px 10px;
+            text-align: center;
+        }
+
         .services-tooltip-container-wrapper {
             display: flex;
             align-items: center;
@@ -226,11 +236,11 @@
 
         const tvaValuesBySelection = {
             'non|20%': ['20%', '0%', '0%', '20%', '20%'],
-            'non|10%': ['10%', '0%', '0%', '10%', '20%'],
-            'non|5.5%': ['20%', '0%', '0%', '5,5%', '20%'],
+            'non|10%': ['10%', '0%', '0%', '10%', '10%'],
+            'non|5.5%': ['20%', '0%', '0%', '5,5%', '5,5%'],
             'oui|20%': ['20%', '20%', '20%', '20%', '20%'],
-            'oui|10%': ['10%', '10%', '10%', '10%', '20%'],
-            'oui|5.5%': ['20%', '5,5%', '5,5%', '5,5%', '20%']
+            'oui|10%': ['10%', '10%', '10%', '10%', '10%'],
+            'oui|5.5%': ['20%', '5,5%', '5,5%', '5,5%', '5,5%']
         };
 
         const tableTemplate = (tvaValues, isColumn2Gray) => `
@@ -246,7 +256,7 @@
 
           <th class="wide-column"><img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="logo-img"></th>
 
-          <th>Offre 5</th>
+          <th class="wide-column"><img src="https://www.adomsap.fr/wp-content/uploads/2025/04/Logo-Adom-SVG-1.svg" alt="ADOM" class="logo-img"></th>
         </tr>
       </thead>
       <tbody>
@@ -338,8 +348,15 @@
     </div>
   </div>
 </td>
-          <td>
-            <div class="gray-check"></div>
+          <td class="wide-column">
+            <div class="services-tooltip-container-wrapper">
+              <div class="services-tooltip-container">
+                <span class="badge-text">-25% de crédit d'impot SAP pour les entreprises</span>
+              </div>
+              <div class="services-tooltip-container">
+                <span class="badge-text">vos clients règlent 50% du montant de la facture</span>
+              </div>
+            </div>
           </td>
         </tr>
 
@@ -377,7 +394,11 @@
             <div class="services-tooltip-container"> 8H - 20H</div>
           </td>
           <td>
-            <div class="gray-check">✔</div>
+            <div class="services-tooltip-container">8H - 19H
+              <div class="services-tooltip">
+                Samedi : 9H-13H
+              </div>
+            </div>
           </td>
         </tr>
 
@@ -408,7 +429,7 @@
             </div>
           </td>
           <td>
-            <div class="gray-check">-</div>
+            <div class="green-check">✔</div>
           </td>
         </tr>
 
@@ -439,7 +460,7 @@
             <div class="services-tooltip-container">✔</div>
           </td>
           <td>
-            <div class="gray-check">✔</div>
+            <div class="green-check">✔</div>
           </td>
         </tr>
 
@@ -465,7 +486,7 @@
             <div class="services-tooltip-container">✔</div>
           </td>
           <td>
-            <div class="gray-check">✔</div>
+            <div class="green-check">✔</div>
           </td>
         </tr>
          <tr>
@@ -490,7 +511,7 @@
             <div class="services-tooltip-container">✔</div>
           </td>
           <td>
-            <div class="gray-check">✔</div>
+            <div class="green-check">✔</div>
           </td>
         </tr>
 
@@ -515,7 +536,7 @@
             <div class="services-tooltip-container">✔</div>
           </td>
           <td>
-            <div class="gray-check">✔</div>
+            <div class="green-check">✔</div>
           </td>
         </tr>
 
@@ -565,7 +586,7 @@
             <div class="services-tooltip-container">✔</div>
           </td>
           <td>
-            <div class="gray-check">✔</div>
+            <div class="gray-check">-</div>
           </td>
         </tr>
 
@@ -592,7 +613,7 @@
             <div class="services-tooltip-container">2</div>
           </td>
           <td>
-            <div class="gray-check">-</div>
+            <div class="services-tooltip-container">1 à 2.</div>
           </td>
         </tr>
 
@@ -617,7 +638,12 @@
             <div class="services-tooltip-container">0%</div>
           </td>
           <td>
-            <div class="gray-check">12%</div>
+            <div class="services-tooltip-container">
+              5% <span class="orange-text"> (↘)</span>
+              <div class="services-tooltip">
+                Taux dégressif jusqu'à 3%<br>
+              </div>
+            </div>
           </td>
         </tr>
 
@@ -669,7 +695,7 @@
             <div class="services-tooltip-container">47,99 € / mois</div>
           </td>
           <td>
-            <div class="gray-check">50€ / an</div>
+            <div class="gray-check">-</div>
           </td>
         </tr>
       </tbody>
